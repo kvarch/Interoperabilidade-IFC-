@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>KV Importador IFC — Beta V01</title>
+<title>KV Importador IFC — Beta V02</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600;700&display=swap');
 
@@ -376,6 +376,8 @@ interface BuiltElement {
   area: number;
   perimeter: number;
   centroid: Vec2;
+  bbox: [number, number, number, number];
+  nv: number;                // vértices do anel externo (parte da assinatura)
   baseHeight: number;
   topHeight: number;
   color: string;
@@ -390,12 +392,22 @@ interface StackGroup {
   floorToFloor: number;
   baseHeight: number;
   thickness: number;
+  solid: boolean;            // true = massa maciça; false = placa (noFacade)
+}
+
+interface GroupReportRow {
+  category: string;
+  count: number;
+  bases: number[];
+  deltas: number[];
+  verdict: string;
 }
 
 interface CategoryState {
   category: string;
   count: number;
   enabled: boolean;
+  group: boolean;
   color: string;
   opacity: number;
   layerName: string;
@@ -407,12 +419,13 @@ interface ImportOptions {
   simplifyTol: number;
   maxTris: number;
   groupSlabs: boolean;
-  groupCategories: string[];
+  plateRatio: number;        // espessura/pé-direito mínimo para tratar a pilha como massa contígua
   minLevels: number;
   f2fTolerance: number;
   f2fMin: number;
   f2fMax: number;
   verticalAxis: 'auto' | 'z' | 'y';
+  includeAllTypes: boolean;  // ler todos os tipos IFC presentes no arquivo
   unitScale: number | null;   // null = detectar pelo arquivo
   zDatum: number;
   flattenPsets: boolean;
@@ -429,12 +442,13 @@ const DEFAULT_OPTIONS: ImportOptions = {
   simplifyTol: 0.12,
   maxTris: 24000,
   groupSlabs: true,
-  groupCategories: ['IFCSLAB'],
+  plateRatio: 0.85,
   minLevels: 2,
   f2fTolerance: 0.08,
   f2fMin: 1.8,
   f2fMax: 12,
   verticalAxis: 'auto',
+  includeAllTypes: true,
   unitScale: null,
   zDatum: 0,
   flattenPsets: true,
@@ -449,7 +463,7 @@ const DEFAULT_OPTIONS: ImportOptions = {
    2. CONSTANTES
    ========================================================================= */
 
-const APP_VERSION = 'Beta V01';
+const APP_VERSION = 'Beta V02';
 
 const WASM_BASES = [
   'https://cdn.jsdelivr.net/npm/web-ifc@0.0.68/',
@@ -484,6 +498,29 @@ const CATEGORY_STYLE: Record<string, { color: string; opacity: number }> = {
 };
 
 const DEFAULT_STYLE = { color: '#80838D', opacity: 1 };
+
+/** Tipos lidos mas desmarcados por padrão (não são massa construída). */
+const OFF_BY_DEFAULT = new Set([
+  'IFCSPACE', 'IFCFURNISHINGELEMENT', 'IFCFURNITURE', 'IFCOPENINGELEMENT',
+  'IFCANNOTATION', 'IFCGRID', 'IFCVIRTUALELEMENT', 'IFCSPATIALZONE',
+]);
+
+/** Cor estável para categorias IFC fora da tabela curada. */
+function autoColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  const hue = h % 360, s = 0.16, l = 0.55;
+  const f = (n: number) => {
+    const k = (n + hue / 30) % 12;
+    const c = l - s * Math.min(l, 1 - l) * Math.max(-1, Math.min(k - 3, 9 - k, 1));
+    return Math.round(c * 255).toString(16).padStart(2, '0');
+  };
+  return '#' + f(0) + f(8) + f(4);
+}
+
+function getStyle(name: string): { color: string; opacity: number } {
+  return CATEGORY_STYLE[name] || { color: autoColor(name), opacity: 1 };
+}
 
 const prettyCategory = (c: string): string =>
   c.replace(/^IFC/, 'Ifc').replace(/^(Ifc)([A-Z]+)$/, (_m, a, b) => a + b.charAt(0) + b.slice(1).toLowerCase());
@@ -1014,19 +1051,51 @@ class IfcImportEngine {
   }
 
   /* ---------- Geometria ---------- */
-  private typeCodes(): Array<{ code: number; name: string }> {
-    const names = Object.keys(CATEGORY_STYLE);
-    const out: Array<{ code: number; name: string }> = [];
-    for (const n of names) {
-      const code = this.W[n];
-      if (typeof code === 'number') out.push({ code, name: n });
+  /**
+   * Tipos a percorrer. Por padrão são extraídos do próprio arquivo via
+   * GetIfcEntityList + GetNameFromTypeCode, preservando a classificação IFC
+   * original (IfcCovering continua IfcCovering, IfcSlabStandardCase continua
+   * IfcSlabStandardCase). O filtro remove apenas entidades não-produto
+   * (geometria primitiva, relacionamentos, unidades, estilos, contêineres
+   * espaciais). A lista curada é usada apenas como fallback.
+   */
+  private typeCodes(opts: ImportOptions): Array<{ code: number; name: string }> {
+    const NON_PRODUCT = /^IFC(REL|PROPERTY|QUANTITY|ELEMENTQUANTITY|MATERIAL|PRESENTATION|STYLED|SURFACESTYLE|COLOUR|CURVESTYLE|FILLAREA|TEXTSTYLE|GEOMETRIC|CARTESIAN|DIRECTION|AXIS|PLACEMENT|LOCALPLACEMENT|OBJECTPLACEMENT|POLYLINE|POLYLOOP|FACE|CLOSEDSHELL|OPENSHELL|SHELLBASED|CONNECTED|CONNECTION|EXTRUDED|SWEPT|BOOLEAN|HALFSPACE|PLANE|CIRCLE|ELLIPSE|LINE|TRIMMED|COMPOSITE|BSPLINE|INDEXED|TRIANGULATED|POLYGONAL|SHAPE|PRODUCTDEFINITION|REPRESENTATION|MAPPED|PROFILE|SIUNIT|UNIT|MEASURE|PERSON|ORGANIZATION|APPLICATION|OWNERHISTORY|CLASSIFICATION|LIBRARY|DOCUMENT|ADDRESS|TABLE|TIME|DATE|MONETARY|DERIVED|CONVERSION|DIMENSIONAL|NAMEDUNIT|CONTEXT|VERTEX|EDGE|LOOP|PATH|CURVE|POINT|VECTOR|BOUNDING|CARTESIANTRANSFORM|PROJECT$|SITE$|BUILDING$|BUILDINGSTOREY$)/;
+
+    const curated = (): Array<{ code: number; name: string }> => {
+      const out: Array<{ code: number; name: string }> = [];
+      for (const n of Object.keys(CATEGORY_STYLE)) {
+        const code = this.W[n];
+        if (typeof code === 'number') out.push({ code, name: n });
+      }
+      return out;
+    };
+
+    if (!opts.includeAllTypes) return curated();
+
+    let codes: number[] = [];
+    try { codes = this.api.GetIfcEntityList(this.modelID) || []; } catch (e) { codes = []; }
+    if (!codes.length) {
+      this.report(0, 'GetIfcEntityList indisponível — usando lista curada de tipos.', 'warn');
+      return curated();
     }
-    return out;
+
+    const out: Array<{ code: number; name: string }> = [];
+    const skipped: string[] = [];
+    for (const code of codes) {
+      let name = '';
+      try { name = String(this.api.GetNameFromTypeCode(code) || '').toUpperCase(); } catch (e) { continue; }
+      if (!name) continue;
+      if (NON_PRODUCT.test(name)) { skipped.push(name); continue; }
+      out.push({ code, name });
+    }
+    this.report(0, out.length + ' tipos IFC de produto encontrados no arquivo (' + skipped.length + ' entidades de suporte ignoradas).');
+    return out.length ? out : curated();
   }
 
   async streamGeometry(opts: ImportOptions): Promise<Map<number, IfcRawElement>> {
     const elements = new Map<number, IfcRawElement>();
-    const types = this.typeCodes();
+    const types = this.typeCodes(opts);
     const scale = opts.unitScale ?? this.unitScale;
 
     // Passe 1: coleta bruta em coordenadas do modelo (x,y,z sem remapeamento).
@@ -1060,7 +1129,7 @@ class IfcImportEngine {
             const hex = '#' + [c.x, c.y, c.z].map((f: number) => clamp(Math.round(f * 255), 0, 255).toString(16).padStart(2, '0')).join('');
             raw.push({
               id, cat: name, v, idx: new Uint32Array(isrc),
-              color: hex === '#000000' ? (CATEGORY_STYLE[name] || DEFAULT_STYLE).color : hex,
+              color: hex === '#000000' ? getStyle(name).color : hex,
               op: typeof c.w === 'number' && c.w > 0 ? c.w : 1,
             });
             geom.delete();
@@ -1084,7 +1153,7 @@ class IfcImportEngine {
       const item = raw[r];
       let el = elements.get(item.id);
       if (!el) {
-        const st = CATEGORY_STYLE[item.cat] || DEFAULT_STYLE;
+        const st = getStyle(item.cat);
         el = {
           expressID: item.id, category: item.cat, tris: [], pts: [], triCount: 0, overflow: false,
           minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity, minZ: Infinity, maxZ: -Infinity,
@@ -1189,6 +1258,12 @@ class IfcImportEngine {
       // Translada para a origem local do modelo.
       const shifted = rings.map((r) => r.map((p) => [p[0] - cx0, p[1] - cy0] as Vec2));
 
+      let bx0 = Infinity, by0 = Infinity, bx1 = -Infinity, by1 = -Infinity;
+      shifted[0].forEach((p) => {
+        if (p[0] < bx0) bx0 = p[0]; if (p[0] > bx1) bx1 = p[0];
+        if (p[1] < by0) by0 = p[1]; if (p[1] > by1) by1 = p[1];
+      });
+
       out.push({
         expressID: el.expressID,
         category: el.category,
@@ -1196,6 +1271,8 @@ class IfcImportEngine {
         area: Math.abs(ringArea(shifted[0])),
         perimeter: ringPerimeter(shifted[0]),
         centroid: ringCentroid(shifted[0]),
+        bbox: [bx0, by0, bx1, by1],
+        nv: shifted[0].length,
         baseHeight: el.minZ,
         topHeight: el.maxZ,
         color: el.color,
@@ -1222,72 +1299,107 @@ class IfcImportEngine {
  */
 function groupStacked(
   elements: BuiltElement[],
-  opts: ImportOptions
-): { groups: StackGroup[]; singles: BuiltElement[] } {
+  opts: ImportOptions,
+  groupSet: Set<string>
+): { groups: StackGroup[]; singles: BuiltElement[]; report: GroupReportRow[] } {
   const groups: StackGroup[] = [];
   const singles: BuiltElement[] = [];
+  const report: GroupReportRow[] = [];
 
-  const target = new Set(opts.groupCategories);
   const eligible: BuiltElement[] = [];
   for (const e of elements) {
-    if (opts.groupSlabs && target.has(e.category)) eligible.push(e);
+    if (opts.groupSlabs && groupSet.has(e.category)) eligible.push(e);
     else singles.push(e);
   }
 
-  // Assinatura: edifício + categoria + área + perímetro + centróide + espessura.
-  const sig = (e: BuiltElement) => [
-    e.meta.building || '·',
-    e.category,
-    round(e.area, 1),
-    round(e.perimeter, 1),
-    round(e.centroid[0], 1),
-    round(e.centroid[1], 1),
-    round(e.topHeight - e.baseHeight, 2),
-    e.rings.length,
-  ].join('|');
-
-  const buckets = new Map<string, BuiltElement[]>();
+  /**
+   * Bucketing em dois estágios. Chave grosseira exata (edifício, categoria,
+   * nº de vértices, nº de anéis) e, dentro dela, clusterização do bounding box
+   * por tolerância absoluta. Quantizar por arredondamento quebrava o
+   * agrupamento quando um valor caía exatamente na fronteira do passo
+   * (ex.: espessura 0,05 medida como 0,049999… num pavimento e 0,05 noutro).
+   */
+  const BBOX_TOL = 0.05;
+  const coarse = new Map<string, BuiltElement[]>();
   for (const e of eligible) {
-    const k = sig(e);
-    const b = buckets.get(k);
-    if (b) b.push(e); else buckets.set(k, [e]);
+    const k = [e.meta.building || '·', e.category, e.nv, e.rings.length].join('|');
+    const b = coarse.get(k);
+    if (b) b.push(e); else coarse.set(k, [e]);
   }
 
+  const buckets: BuiltElement[][] = [];
+  coarse.forEach((list) => {
+    const clusters: Array<{ bbox: number[]; items: BuiltElement[] }> = [];
+    for (const e of list) {
+      let hit: { bbox: number[]; items: BuiltElement[] } | null = null;
+      for (const c of clusters) {
+        if (Math.abs(c.bbox[0] - e.bbox[0]) <= BBOX_TOL &&
+            Math.abs(c.bbox[1] - e.bbox[1]) <= BBOX_TOL &&
+            Math.abs(c.bbox[2] - e.bbox[2]) <= BBOX_TOL &&
+            Math.abs(c.bbox[3] - e.bbox[3]) <= BBOX_TOL) { hit = c; break; }
+      }
+      if (hit) hit.items.push(e);
+      else clusters.push({ bbox: e.bbox.slice(), items: [e] });
+    }
+    clusters.forEach((c) => buckets.push(c.items));
+  });
+
   buckets.forEach((list) => {
-    if (list.length < opts.minLevels) { singles.push(...list); return; }
+    const cat = list[0].category;
     list.sort((a, b) => a.baseHeight - b.baseHeight);
+    const bases = list.map((e) => round(e.baseHeight, 3));
+    const deltas: number[] = [];
+    for (let i = 1; i < list.length; i++) deltas.push(round(list[i].baseHeight - list[i - 1].baseHeight, 3));
+
+    if (list.length < opts.minLevels) {
+      singles.push(...list);
+      report.push({ category: cat, count: list.length, bases, deltas, verdict: 'individual (abaixo do mínimo de níveis)' });
+      return;
+    }
 
     // Particiona em corridas maximais de espaçamento constante (guloso, sem
     // repetir nem perder elementos na fronteira entre corridas).
+    const verdicts: string[] = [];
     let i = 0;
     while (i < list.length) {
       let j = i + 1;
       let delta = NaN;
+      const th0 = list[i].topHeight - list[i].baseHeight;
+      const thTol = Math.max(0.02, th0 * 0.02);
       while (j < list.length) {
         const d = list[j].baseHeight - list[j - 1].baseHeight;
         if (!(d >= opts.f2fMin && d <= opts.f2fMax)) break;
+        if (Math.abs((list[j].topHeight - list[j].baseHeight) - th0) > thTol) break;
         if (!Number.isFinite(delta)) { delta = d; j++; continue; }
         if (Math.abs(d - delta) > opts.f2fTolerance) break;
         j++;
       }
       const run = list.slice(i, j);
       if (run.length >= opts.minLevels && Number.isFinite(delta)) {
+        const thickness = run[0].topHeight - run[0].baseHeight;
+        // Espessura próxima do pé-direito => volume de pavimento (massa maciça).
+        // Espessura muito menor => placa de piso (noFacade + slabThickness).
+        const solid = thickness >= delta * opts.plateRatio;
         groups.push({
           members: run,
           levels: run.length,
           floorToFloor: delta,
           baseHeight: run[0].baseHeight,
-          thickness: run[0].topHeight - run[0].baseHeight,
+          thickness,
+          solid,
         });
+        verdicts.push(run.length + '× f2f ' + round(delta, 3) + ' m → ' + (solid ? 'massa' : 'laje'));
         i = j;
       } else {
         singles.push(list[i]);
+        verdicts.push('1 individual');
         i += 1;
       }
     }
+    report.push({ category: cat, count: list.length, bases, deltas, verdict: verdicts.join(' · ') });
   });
 
-  return { groups, singles };
+  return { groups, singles, report };
 }
 
 /* =========================================================================
@@ -1383,21 +1495,37 @@ function buildFeatures(
     const e = g.members[0];
     const base = round(g.baseHeight + opts.zDatum, 3);
     const f2f = round(g.floorToFloor, 3);
-    const thick = Math.max(round(g.thickness, 3), 0.05);
+    const thick = Math.max(round(g.thickness, 3), 0.02);
+
+    // ATENÇÃO: 'height' sobrepõe levels × floorToFloor no Giraffe — nunca gravar
+    // em features agrupadas, sob pena de colapsar a pilha num único volume.
+    const stackProps: Record<string, unknown> = g.solid
+      ? {
+          // Volume de pavimento: massa maciça, altura = levels × floorToFloor.
+          levels: g.levels,
+          floorToFloor: f2f,
+          _height: round(base + f2f * g.levels, 3),
+        }
+      : {
+          // Placa de piso: lâminas repetidas sem fachada.
+          levels: g.levels,
+          floorToFloor: f2f,
+          noFacade: true,
+          slabThickness: thick,
+          _height: round(base + f2f * (g.levels - 1) + thick, 3),
+        };
+
     features.push({
       type: 'Feature',
       properties: {
         ...baseProps(e),
         name: (e.meta.name || prettyCategory(e.category)) + ' · ' + g.levels + ' níveis',
-        // ATENÇÃO: 'height' sobrepõe levels × floorToFloor no Giraffe — não gravar aqui.
-        levels: g.levels,
-        floorToFloor: f2f,
-        noFacade: true,
-        slabThickness: thick,
-        _height: round(base + f2f * (g.levels - 1) + thick, 3),
+        ...stackProps,
         kv_ifc_stacked: true,
+        kv_ifc_stackKind: g.solid ? 'massa' : 'laje',
         kv_ifc_stackCount: g.levels,
         kv_ifc_stackF2F: f2f,
+        kv_ifc_stackThickness: thick,
         kv_ifc_members: g.members.map((m) => m.meta.globalId || String(m.expressID)),
         kv_ifc_storeys: g.members.map((m) => m.meta.storey).filter(Boolean),
         ...psetProps(e.meta, opts),
@@ -1720,13 +1848,15 @@ function App() {
       built.forEach((e) => counts.set(e.category, (counts.get(e.category) || 0) + 1));
       const cats: CategoryState[] = [];
       counts.forEach((count, category) => {
-        const st = CATEGORY_STYLE[category] || DEFAULT_STYLE;
+        const st = getStyle(category);
+        const on = !OFF_BY_DEFAULT.has(category);
         cats.push({
-          category, count, enabled: category !== 'IFCSPACE' && category !== 'IFCFURNISHINGELEMENT',
+          category, count, enabled: on, group: on,
           color: st.color, opacity: st.opacity, layerName: 'IFC · ' + prettyCategory(category),
         });
       });
       cats.sort((a, b) => b.count - a.count);
+      log.push('Classificação IFC lida do arquivo: ' + cats.map((c) => prettyCategory(c.category) + ' (' + c.count + ')').join(', '));
 
       setElements(built);
       setCategories(cats);
@@ -1750,11 +1880,18 @@ function App() {
   /* ---------- agrupamento reativo ---------- */
   const enabledSet = useMemo(() => new Set(categories.filter((c) => c.enabled).map((c) => c.category)), [categories]);
   const visible = useMemo(() => elements.filter((e) => enabledSet.has(e.category)), [elements, enabledSet]);
-  const { groups, singles } = useMemo(() => groupStacked(visible, opts), [visible, opts]);
+  const groupSet = useMemo(
+    () => new Set(categories.filter((c) => c.enabled && c.group).map((c) => c.category)),
+    [categories]
+  );
+  const { groups, singles, report: groupReport } = useMemo(
+    () => groupStacked(visible, opts, groupSet),
+    [visible, opts, groupSet]
+  );
 
   const styleFor = useCallback((cat: string) => {
     const c = categories.find((x) => x.category === cat);
-    return c ? { color: c.color, opacity: c.opacity } : (CATEGORY_STYLE[cat] || DEFAULT_STYLE);
+    return c ? { color: c.color, opacity: c.opacity } : getStyle(cat);
   }, [categories]);
 
   const collapsedLevels = useMemo(() => groups.reduce((s, g) => s + g.levels, 0), [groups]);
@@ -1934,9 +2071,26 @@ function App() {
                     onChange={(e) => setOpt('f2fMax', parseFloat(e.target.value) || 12)} />
                 </div>
               </div>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="pratio">Razão espessura/pé-direito p/ virar massa</label>
+                  <input id="pratio" type="number" step="0.05" min="0.05" max="1" value={opts.plateRatio}
+                    onChange={(e) => setOpt('plateRatio', clamp(parseFloat(e.target.value) || 0.85, 0.05, 1))} />
+                </div>
+                <div className="field">
+                  <label htmlFor="dummy-sp">&nbsp;</label>
+                  <div style={{ minHeight: 48, display: 'flex', alignItems: 'center', fontSize: 12,
+                    color: 'var(--md-sys-color-on-surface-variant)' }}>
+                    {groups.filter((g) => g.solid).length} massa(s) · {groups.filter((g) => !g.solid).length} laje(s)
+                  </div>
+                </div>
+              </div>
               <p className="hint">
-                {groups.length} pilha(s) detectada(s), colapsando {collapsedLevels} lajes.
-                Lajes únicas ou com espaçamento irregular permanecem individuais.
+                {groups.length} pilha(s) detectada(s), colapsando {collapsedLevels} elementos.
+                Quando a espessura do elemento atinge essa fração do pé-direito, a pilha é
+                contígua e vira massa maciça (altura = níveis × pé-direito); abaixo disso vira
+                placa repetida, com <code>noFacade</code> e <code>slabThickness</code>, preservando os vazios.
+                Ative ou desative o agrupamento por categoria na aba Camadas.
               </p>
             </section>
 
@@ -1976,7 +2130,8 @@ function App() {
                   <thead>
                     <tr>
                       <th scope="col">Incluir</th>
-                      <th scope="col">Categoria</th>
+                      <th scope="col">Agrupar</th>
+                      <th scope="col">Categoria IFC</th>
                       <th scope="col" className="num">Elem.</th>
                       <th scope="col">Cor</th>
                       <th scope="col">Camada</th>
@@ -1989,6 +2144,13 @@ function App() {
                           <label className="cell-check">
                             <input type="checkbox" checked={c.enabled} aria-label={'Incluir ' + prettyCategory(c.category)}
                               onChange={(e) => setCategories((p) => p.map((x, j) => (j === i ? { ...x, enabled: e.target.checked } : x)))} />
+                          </label>
+                        </td>
+                        <td>
+                          <label className="cell-check">
+                            <input type="checkbox" checked={c.group} disabled={!c.enabled}
+                              aria-label={'Agrupar pilhas de ' + prettyCategory(c.category)}
+                              onChange={(e) => setCategories((p) => p.map((x, j) => (j === i ? { ...x, group: e.target.checked } : x)))} />
                           </label>
                         </td>
                         <td>{prettyCategory(c.category)}</td>
@@ -2042,6 +2204,11 @@ function App() {
                 </div>
               </div>
               <label className="check">
+                <input type="checkbox" checked={opts.includeAllTypes}
+                  onChange={(e) => setOpt('includeAllTypes', e.target.checked)} />
+                Ler todos os tipos IFC presentes no arquivo (desmarcado: apenas a lista curada)
+              </label>
+              <label className="check">
                 <input type="checkbox" checked={opts.flattenPsets} onChange={(e) => setOpt('flattenPsets', e.target.checked)} />
                 Achatar Psets em propriedades kv_p_* (além do objeto kv_ifc_psets)
               </label>
@@ -2072,6 +2239,39 @@ function App() {
                 </tbody>
               </table>
             </section>
+            <section className="card" aria-labelledby="sec-grp">
+              <h2 id="sec-grp">Relatório de agrupamento</h2>
+              {!groupReport.length && <p className="hint">Nenhum conjunto candidato a agrupamento.</p>}
+              {!!groupReport.length && (
+                <table className="kv">
+                  <thead>
+                    <tr>
+                      <th scope="col">Categoria</th>
+                      <th scope="col" className="num">Qtd.</th>
+                      <th scope="col">Cotas de base (m)</th>
+                      <th scope="col">Deltas (m)</th>
+                      <th scope="col">Resultado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {groupReport.slice(0, 60).map((r, i) => (
+                      <tr key={i}>
+                        <td>{prettyCategory(r.category)}</td>
+                        <td className="num">{r.count}</td>
+                        <td>{r.bases.slice(0, 8).join(', ')}{r.bases.length > 8 ? '…' : ''}</td>
+                        <td>{r.deltas.slice(0, 8).join(', ')}{r.deltas.length > 8 ? '…' : ''}</td>
+                        <td>{r.verdict}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              <p className="hint">
+                Um conjunto só agrupa quando bbox, contagem de vértices e espessura coincidem
+                e os deltas de cota são constantes dentro da tolerância.
+              </p>
+            </section>
+
             <section className="card" aria-labelledby="sec-log">
               <h2 id="sec-log">Log de execução</h2>
               <div className="log" role="log" aria-live="polite">
