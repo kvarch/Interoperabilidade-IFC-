@@ -1,0 +1,2119 @@
+<!doctype html>
+<html lang="pt-BR" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KV Importador IFC — Beta V01</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Hind:wght@300;400;500;600;700&display=swap');
+
+/* ==========================================================================
+   MATERIAL DESIGN 3 COLOR TOKENS (LIGHT THEME - DEFAULT)
+   ========================================================================== */
+:root, .light {
+  --md-sys-color-primary: rgb(0 103 124);
+  --md-sys-color-surface-tint: rgb(0 103 124);
+  --md-sys-color-on-primary: rgb(255 255 255);
+  --md-sys-color-primary-container: rgb(0 172 205);
+  --md-sys-color-on-primary-container: rgb(0 58 71);
+  --md-sys-color-secondary: rgb(30 30 30);
+  --md-sys-color-on-secondary: rgb(255 255 255);
+  --md-sys-color-secondary-container: rgb(51 51 51);
+  --md-sys-color-on-secondary-container: rgb(156 155 155);
+  --md-sys-color-tertiary: rgb(38 39 125);
+  --md-sys-color-on-tertiary: rgb(255 255 255);
+  --md-sys-color-tertiary-container: rgb(62 64 149);
+  --md-sys-color-on-tertiary-container: rgb(178 179 255);
+  --md-sys-color-error: rgb(179 33 0);
+  --md-sys-color-on-error: rgb(255 255 255);
+  --md-sys-color-error-container: rgb(216 57 24);
+  --md-sys-color-on-error-container: rgb(255 251 255);
+  --md-sys-color-background: rgb(245 250 253);
+  --md-sys-color-on-background: rgb(23 28 30);
+  --md-sys-color-surface: rgb(249 249 249);
+  --md-sys-color-on-surface: rgb(27 27 27);
+  --md-sys-color-surface-variant: rgb(224 227 227);
+  --md-sys-color-on-surface-variant: rgb(68 71 72);
+  --md-sys-color-outline: rgb(116 120 120);
+  --md-sys-color-outline-variant: rgb(196 199 199);
+  --md-sys-color-shadow: rgb(0 0 0);
+  --md-sys-color-scrim: rgb(0 0 0);
+  --md-sys-color-inverse-surface: rgb(48 48 48);
+  --md-sys-color-inverse-on-surface: rgb(241 241 241);
+  --md-sys-color-inverse-primary: rgb(84 214 248);
+  --md-sys-color-surface-dim: rgb(218 218 218);
+  --md-sys-color-surface-bright: rgb(249 249 249);
+  --md-sys-color-surface-container-lowest: rgb(255 255 255);
+  --md-sys-color-surface-container-low: rgb(243 243 243);
+  --md-sys-color-surface-container: rgb(238 238 238);
+  --md-sys-color-surface-container-high: rgb(232 232 232);
+  --md-sys-color-surface-container-highest: rgb(226 226 226);
+  --md-extended-color-custom-color1-color: rgb(0 108 77);
+  --md-extended-color-custom-color1-on-color: rgb(255 255 255);
+  --md-extended-color-custom-color1-color-container: rgb(47 175 131);
+  --md-extended-color-custom-color1-on-color-container: rgb(0 59 41);
+  --kv-logo: url('data:image/png;base64,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');
+}
+
+/* ==========================================================================
+   MATERIAL DESIGN 3 COLOR TOKENS (DARK THEME)
+   ========================================================================== */
+.dark {
+  --md-sys-color-primary: rgb(84 214 248);
+  --md-sys-color-surface-tint: rgb(84 214 248);
+  --md-sys-color-on-primary: rgb(0 54 66);
+  --md-sys-color-primary-container: rgb(0 172 205);
+  --md-sys-color-on-primary-container: rgb(0 58 71);
+  --md-sys-color-secondary: rgb(200 198 198);
+  --md-sys-color-on-secondary: rgb(48 48 48);
+  --md-sys-color-secondary-container: rgb(51 51 51);
+  --md-sys-color-on-secondary-container: rgb(156 155 155);
+  --md-sys-color-tertiary: rgb(192 193 255);
+  --md-sys-color-on-tertiary: rgb(35 36 122);
+  --md-sys-color-tertiary-container: rgb(62 64 149);
+  --md-sys-color-on-tertiary-container: rgb(178 179 255);
+  --md-sys-color-error: rgb(255 180 164);
+  --md-sys-color-on-error: rgb(99 14 0);
+  --md-sys-color-error-container: rgb(255 86 50);
+  --md-sys-color-on-error-container: rgb(38 2 0);
+  --md-sys-color-background: rgb(15 20 22);
+  --md-sys-color-on-background: rgb(222 227 230);
+  --md-sys-color-surface: rgb(19 19 19);
+  --md-sys-color-on-surface: rgb(226 226 226);
+  --md-sys-color-surface-variant: rgb(68 71 72);
+  --md-sys-color-on-surface-variant: rgb(196 199 199);
+  --md-sys-color-outline: rgb(142 145 146);
+  --md-sys-color-outline-variant: rgb(68 71 72);
+  --md-sys-color-inverse-surface: rgb(226 226 226);
+  --md-sys-color-inverse-on-surface: rgb(48 48 48);
+  --md-sys-color-inverse-primary: rgb(0 103 124);
+  --md-sys-color-surface-dim: rgb(19 19 19);
+  --md-sys-color-surface-bright: rgb(57 57 57);
+  --md-sys-color-surface-container-lowest: rgb(14 14 14);
+  --md-sys-color-surface-container-low: rgb(27 27 27);
+  --md-sys-color-surface-container: rgb(31 31 31);
+  --md-sys-color-surface-container-high: rgb(42 42 42);
+  --md-sys-color-surface-container-highest: rgb(53 53 53);
+  --md-extended-color-custom-color1-color: rgb(100 220 172);
+  --md-extended-color-custom-color1-on-color: rgb(0 56 39);
+  --md-extended-color-custom-color1-color-container: rgb(47 175 131);
+  --md-extended-color-custom-color1-on-color-container: rgb(0 59 41);
+  --kv-logo: url('data:image/png;base64,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');
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  width: 100%; height: 100%;
+  margin: 0; padding: 0; border: 0;
+}
+
+body {
+  font-family: 'Hedley New', 'Hind', system-ui, -apple-system, sans-serif;
+  background-color: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-background);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Layout ---------- */
+.app-shell { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 12px 16px; min-height: 64px;
+  background-color: var(--md-sys-color-surface-container-lowest);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  flex: 0 0 auto;
+}
+.logo-container { display: flex; align-items: center; padding: 0 16px 0 0; }
+.brand-logo {
+  display: block; height: 34px; width: 101px;
+  background-image: var(--kv-logo);
+  background-repeat: no-repeat; background-size: contain; background-position: left center;
+}
+.app-title {
+  margin: 0; font-size: 13px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--md-sys-color-on-surface); flex: 1 1 auto;
+}
+.app-title small {
+  display: block; font-size: 10px; font-weight: 400; letter-spacing: 0.1em;
+  color: var(--md-sys-color-on-surface-variant); text-transform: none;
+}
+
+.app-tabs {
+  display: flex; flex: 0 0 auto;
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  background-color: var(--md-sys-color-surface-container-low);
+}
+.app-tabs button {
+  flex: 1 1 0; min-height: 48px; padding: 0 8px;
+  background: transparent; border: 0; border-bottom: 2px solid transparent;
+  border-radius: 0; cursor: pointer;
+  font-family: inherit; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.app-tabs button[aria-selected="true"] {
+  color: var(--md-sys-color-primary);
+  border-bottom-color: var(--md-sys-color-primary);
+  background-color: var(--md-sys-color-surface-container);
+}
+
+.app-main { flex: 1 1 auto; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+
+.app-footer {
+  flex: 0 0 auto; padding: 10px 16px;
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  background-color: var(--md-sys-color-surface-container-lowest);
+  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--md-sys-color-on-surface-variant);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+
+/* ---------- Cards ---------- */
+.card {
+  background-color: var(--md-sys-color-surface-container-lowest);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 0; box-shadow: none; padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.card > h2 {
+  margin: 0; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.card p.hint { margin: 0; font-size: 12px; color: var(--md-sys-color-on-surface-variant); }
+
+/* ---------- Controls ---------- */
+.btn {
+  min-height: 48px; padding: 0 20px; border-radius: 0; cursor: pointer;
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid transparent; box-shadow: none;
+}
+.btn-primary { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+.btn-outlined {
+  background-color: transparent; color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline);
+}
+.btn-danger { background-color: transparent; color: var(--md-sys-color-error); border: 1px solid var(--md-sys-color-error); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn-row > .btn { flex: 1 1 160px; }
+
+.icon-btn {
+  min-width: 48px; min-height: 48px; border-radius: 0; cursor: pointer;
+  background: transparent; border: 1px solid var(--md-sys-color-outline);
+  color: var(--md-sys-color-on-surface); font-family: inherit; font-size: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+
+.field { display: flex; flex-direction: column; gap: 4px; flex: 1 1 140px; }
+.field > label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.field input, .field select {
+  background-color: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: 0; min-height: 48px; padding: 0 12px;
+  font-family: inherit; font-size: 13px; width: 100%;
+}
+.field-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.check {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 48px; padding: 0 4px; cursor: pointer; font-size: 13px;
+}
+.check input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--md-sys-color-primary); cursor: pointer; }
+
+/* ---------- Dropzone ---------- */
+.dropzone {
+  border: 1px dashed var(--md-sys-color-outline);
+  background-color: var(--md-sys-color-surface-container-low);
+  border-radius: 0; min-height: 112px; padding: 20px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; text-align: center; cursor: pointer;
+}
+.dropzone.is-over { border-color: var(--md-sys-color-primary); background-color: var(--md-sys-color-surface-container-high); }
+.dropzone strong { font-size: 13px; letter-spacing: 0.04em; }
+.dropzone span { font-size: 11px; color: var(--md-sys-color-on-surface-variant); }
+
+/* ---------- Progress ---------- */
+.progress { height: 6px; width: 100%; background-color: var(--md-sys-color-surface-variant); overflow: hidden; }
+.progress > i { display: block; height: 100%; background-color: var(--md-sys-color-primary); transition: width 120ms linear; }
+.progress-label { font-size: 11px; color: var(--md-sys-color-on-surface-variant); }
+
+/* ---------- KPI ---------- */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 1px; background-color: var(--md-sys-color-outline-variant); border: 1px solid var(--md-sys-color-outline-variant); }
+.kpi { background-color: var(--md-sys-color-surface-container-lowest); padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+.kpi b { font-size: 20px; font-weight: 600; color: var(--md-sys-color-primary); font-variant-numeric: tabular-nums; }
+.kpi span { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--md-sys-color-on-surface-variant); }
+
+/* ---------- Table ---------- */
+table.kv { width: 100%; border-collapse: collapse; font-size: 12px; }
+table.kv th, table.kv td {
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+  padding: 8px 6px; text-align: left; vertical-align: middle;
+}
+table.kv th {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--md-sys-color-on-surface-variant); font-weight: 600;
+}
+table.kv td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.swatch { display: inline-block; width: 14px; height: 14px; border: 1px solid var(--md-sys-color-outline-variant); vertical-align: middle; }
+input[type="color"] { width: 56px; height: 48px; padding: 2px; border: 1px solid var(--md-sys-color-outline); background: transparent; border-radius: 0; cursor: pointer; }
+.cell-check { display: flex; align-items: center; justify-content: center; min-width: 48px; min-height: 48px; cursor: pointer; }
+.cell-check input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--md-sys-color-primary); cursor: pointer; }
+.cell-input {
+  min-height: 48px; width: 100%; padding: 0 10px; border-radius: 0;
+  background: var(--md-sys-color-surface-container-low); color: var(--md-sys-color-on-surface);
+  border: 1px solid var(--md-sys-color-outline); font-family: inherit; font-size: 12px;
+}
+
+/* ---------- Banners ---------- */
+.banner { padding: 10px 12px; font-size: 12px; border: 1px solid transparent; border-radius: 0; }
+.banner-error { color: var(--md-sys-color-on-error-container); background-color: var(--md-sys-color-error-container); }
+.banner-ok { color: var(--md-extended-color-custom-color1-on-color-container); background-color: var(--md-extended-color-custom-color1-color-container); }
+.banner-info { color: var(--md-sys-color-on-surface-variant); background-color: var(--md-sys-color-surface-container); border-color: var(--md-sys-color-outline-variant); }
+
+/* ---------- Log ---------- */
+.log {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 11px; line-height: 1.5;
+  background-color: var(--md-sys-color-surface-container-low);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  padding: 10px; height: 320px; overflow: auto; white-space: pre-wrap; word-break: break-word;
+}
+.log .lv-error { color: var(--md-sys-color-error); }
+.log .lv-warn  { color: var(--md-extended-color-custom-color1-color); }
+.log .lv-ok    { color: var(--md-sys-color-primary); }
+.log .ts { color: var(--md-sys-color-on-surface-variant); }
+
+/* ---------- Accessibility ---------- */
+:focus-visible {
+  outline: 2px solid var(--md-sys-color-primary);
+  outline-offset: 2px;
+}
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+</style>
+</head>
+<body>
+<div id="root" role="application" aria-label="Importador de arquivos IFC para o Giraffe"></div>
+<noscript>Este aplicativo requer JavaScript habilitado.</noscript>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.26.4/babel.min.js" crossorigin></script>
+<script>
+  // Registra um preset TSX (TypeScript + JSX) para o Babel Standalone.
+  if (window.Babel) {
+    Babel.registerPreset('kv-tsx', {
+      presets: [[Babel.availablePresets['typescript'], { isTSX: true, allExtensions: true }]]
+    });
+  }
+</script>
+
+<script type="text/babel" data-presets="react,kv-tsx">
+/* =========================================================================
+   KV IMPORTADOR IFC — Beta V01
+   Königsberger Vannucchi Arquitetos Associados
+   React 18 + TypeScript (TSX). Arquivo único, sem build step.
+   ========================================================================= */
+
+declare const React: any;
+declare const ReactDOM: any;
+const { useState, useCallback, useRef, useEffect, useMemo } = React;
+
+/* =========================================================================
+   1. TIPOS
+   ========================================================================= */
+
+type Vec2 = [number, number];
+type Ring = Vec2[];
+
+type LogLevel = 'info' | 'ok' | 'warn' | 'error';
+type LogEntry = { t: string; lv: LogLevel; msg: string };
+
+type Anchor = { lon: number; lat: number; rotation: number; source: string };
+
+interface IfcRawElement {
+  expressID: number;
+  category: string;          // IFCWALL, IFCSLAB, ...
+  tris: number[];            // triângulos projetados em XY (6 números por triângulo)
+  pts: number[];             // nuvem XY para envoltória convexa (2 números por ponto)
+  triCount: number;
+  overflow: boolean;         // excedeu o limite de triângulos -> usa hull
+  minX: number; maxX: number;
+  minY: number; maxY: number;
+  minZ: number; maxZ: number;
+  color: string;
+  opacity: number;
+}
+
+interface IfcMeta {
+  globalId: string;
+  name: string;
+  description: string;
+  storey: string;
+  storeyElevation: number | null;
+  building: string;
+  psets: Record<string, Record<string, unknown>>;
+}
+
+interface BuiltElement {
+  expressID: number;
+  category: string;
+  rings: Ring[];             // [exterior, ...furos] em metros locais
+  area: number;
+  perimeter: number;
+  centroid: Vec2;
+  baseHeight: number;
+  topHeight: number;
+  color: string;
+  opacity: number;
+  meta: IfcMeta;
+  mode: 'hull' | 'raster';
+}
+
+interface StackGroup {
+  members: BuiltElement[];
+  levels: number;
+  floorToFloor: number;
+  baseHeight: number;
+  thickness: number;
+}
+
+interface CategoryState {
+  category: string;
+  count: number;
+  enabled: boolean;
+  color: string;
+  opacity: number;
+  layerName: string;
+}
+
+interface ImportOptions {
+  contourMode: 'auto' | 'hull' | 'raster';
+  cellSize: number;
+  simplifyTol: number;
+  maxTris: number;
+  groupSlabs: boolean;
+  groupCategories: string[];
+  minLevels: number;
+  f2fTolerance: number;
+  f2fMin: number;
+  f2fMax: number;
+  verticalAxis: 'auto' | 'z' | 'y';
+  unitScale: number | null;   // null = detectar pelo arquivo
+  zDatum: number;
+  flattenPsets: boolean;
+  maxFlatProps: number;
+  writeVertexZ: boolean;
+  perCategoryLayers: boolean;
+  writer: 'createRawSections' | 'importRawSections';
+  chunkSize: number;
+}
+
+const DEFAULT_OPTIONS: ImportOptions = {
+  contourMode: 'auto',
+  cellSize: 0.25,
+  simplifyTol: 0.12,
+  maxTris: 24000,
+  groupSlabs: true,
+  groupCategories: ['IFCSLAB'],
+  minLevels: 2,
+  f2fTolerance: 0.08,
+  f2fMin: 1.8,
+  f2fMax: 12,
+  verticalAxis: 'auto',
+  unitScale: null,
+  zDatum: 0,
+  flattenPsets: true,
+  maxFlatProps: 40,
+  writeVertexZ: false,
+  perCategoryLayers: true,
+  writer: 'createRawSections',
+  chunkSize: 150,
+};
+
+/* =========================================================================
+   2. CONSTANTES
+   ========================================================================= */
+
+const APP_VERSION = 'Beta V01';
+
+const WASM_BASES = [
+  'https://cdn.jsdelivr.net/npm/web-ifc@0.0.68/',
+  'https://unpkg.com/web-ifc@0.0.68/',
+];
+
+const WEB_IFC_ESM = 'https://esm.sh/web-ifc@0.0.68';
+const GIRAFFE_SDK_ESM = 'https://esm.sh/@gi-nx/iframe-sdk@0.0.13';
+
+const CATEGORY_STYLE: Record<string, { color: string; opacity: number }> = {
+  IFCWALL: { color: '#9E9E9E', opacity: 1 },
+  IFCWALLSTANDARDCASE: { color: '#9E9E9E', opacity: 1 },
+  IFCSLAB: { color: '#6D8196', opacity: 1 },
+  IFCROOF: { color: '#455A64', opacity: 1 },
+  IFCCOLUMN: { color: '#5D4037', opacity: 1 },
+  IFCBEAM: { color: '#795548', opacity: 1 },
+  IFCWINDOW: { color: '#4FC3F7', opacity: 0.45 },
+  IFCDOOR: { color: '#A1887F', opacity: 1 },
+  IFCSTAIR: { color: '#78909C', opacity: 1 },
+  IFCSTAIRFLIGHT: { color: '#78909C', opacity: 1 },
+  IFCRAILING: { color: '#B0BEC5', opacity: 0.8 },
+  IFCCURTAINWALL: { color: '#90CAF9', opacity: 0.5 },
+  IFCPLATE: { color: '#B0BEC5', opacity: 0.7 },
+  IFCMEMBER: { color: '#8D6E63', opacity: 1 },
+  IFCCOVERING: { color: '#CFD8DC', opacity: 1 },
+  IFCSPACE: { color: '#B2DFDB', opacity: 0.35 },
+  IFCRAMP: { color: '#78909C', opacity: 1 },
+  IFCFOOTING: { color: '#6D4C41', opacity: 1 },
+  IFCPILE: { color: '#6D4C41', opacity: 1 },
+  IFCFURNISHINGELEMENT: { color: '#BCAAA4', opacity: 1 },
+  IFCBUILDINGELEMENTPROXY: { color: '#80838D', opacity: 1 },
+};
+
+const DEFAULT_STYLE = { color: '#80838D', opacity: 1 };
+
+const prettyCategory = (c: string): string =>
+  c.replace(/^IFC/, 'Ifc').replace(/^(Ifc)([A-Z]+)$/, (_m, a, b) => a + b.charAt(0) + b.slice(1).toLowerCase());
+
+/* =========================================================================
+   3. UTILITÁRIOS GERAIS
+   ========================================================================= */
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+const round = (v: number, d: number) => Math.round(v * 10 ** d) / 10 ** d;
+
+const sanitizeKey = (s: string): string =>
+  String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 48);
+
+/* =========================================================================
+   4. GEOMETRIA 2D
+   ========================================================================= */
+
+function ringArea(ring: Ring): number {
+  let a = 0;
+  for (let i = 0, n = ring.length; i < n; i++) {
+    const p = ring[i];
+    const q = ring[(i + 1) % n];
+    a += p[0] * q[1] - q[0] * p[1];
+  }
+  return a / 2;
+}
+
+function ringPerimeter(ring: Ring): number {
+  let p = 0;
+  for (let i = 0, n = ring.length; i < n; i++) {
+    const a = ring[i];
+    const b = ring[(i + 1) % n];
+    p += Math.hypot(b[0] - a[0], b[1] - a[1]);
+  }
+  return p;
+}
+
+function ringCentroid(ring: Ring): Vec2 {
+  const a = ringArea(ring);
+  if (Math.abs(a) < 1e-9) {
+    let sx = 0, sy = 0;
+    ring.forEach((p) => { sx += p[0]; sy += p[1]; });
+    return [sx / ring.length, sy / ring.length];
+  }
+  let cx = 0, cy = 0;
+  for (let i = 0, n = ring.length; i < n; i++) {
+    const p = ring[i];
+    const q = ring[(i + 1) % n];
+    const f = p[0] * q[1] - q[0] * p[1];
+    cx += (p[0] + q[0]) * f;
+    cy += (p[1] + q[1]) * f;
+  }
+  return [cx / (6 * a), cy / (6 * a)];
+}
+
+/** Envoltória convexa — cadeia monótona de Andrew. */
+function convexHull(pts: number[]): Ring {
+  const n = pts.length / 2;
+  if (n < 3) return [];
+  const arr: Ring = [];
+  for (let i = 0; i < n; i++) arr.push([pts[i * 2], pts[i * 2 + 1]]);
+  arr.sort((a, b) => (a[0] === b[0] ? a[1] - b[1] : a[0] - b[0]));
+  const cross = (o: Vec2, a: Vec2, b: Vec2) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+  const lower: Ring = [];
+  for (const p of arr) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
+    lower.push(p);
+  }
+  const upper: Ring = [];
+  for (let i = arr.length - 1; i >= 0; i--) {
+    const p = arr[i];
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
+    upper.push(p);
+  }
+  lower.pop(); upper.pop();
+  return lower.concat(upper);
+}
+
+/** Douglas–Peucker. */
+function simplifyRing(ring: Ring, eps: number): Ring {
+  if (ring.length < 4) return ring;
+  const closed = ring.concat([ring[0]]);
+  const keep = new Uint8Array(closed.length);
+  keep[0] = 1; keep[closed.length - 1] = 1;
+  const stack: Array<[number, number]> = [[0, closed.length - 1]];
+  while (stack.length) {
+    const seg = stack.pop() as [number, number];
+    const [s, e] = seg;
+    if (e <= s + 1) continue;
+    const a = closed[s], b = closed[e];
+    const dx = b[0] - a[0], dy = b[1] - a[1];
+    const len = Math.hypot(dx, dy) || 1e-9;
+    let best = -1, bestD = eps;
+    for (let i = s + 1; i < e; i++) {
+      const p = closed[i];
+      const d = Math.abs(dy * (p[0] - a[0]) - dx * (p[1] - a[1])) / len;
+      if (d > bestD) { bestD = d; best = i; }
+    }
+    if (best > 0) { keep[best] = 1; stack.push([s, best], [best, e]); }
+  }
+  const out: Ring = [];
+  for (let i = 0; i < closed.length - 1; i++) if (keep[i]) out.push(closed[i]);
+  return out.length >= 3 ? out : ring;
+}
+
+/** Remove vértices praticamente colineares (< 1°). */
+function dropCollinear(ring: Ring, angleDeg = 1): Ring {
+  if (ring.length < 4) return ring;
+  const lim = Math.cos((180 - angleDeg) * Math.PI / 180);
+  const out: Ring = [];
+  const n = ring.length;
+  for (let i = 0; i < n; i++) {
+    const a = ring[(i - 1 + n) % n], b = ring[i], c = ring[(i + 1) % n];
+    const v1x = a[0] - b[0], v1y = a[1] - b[1];
+    const v2x = c[0] - b[0], v2y = c[1] - b[1];
+    const l1 = Math.hypot(v1x, v1y) || 1e-9;
+    const l2 = Math.hypot(v2x, v2y) || 1e-9;
+    const cosang = (v1x * v2x + v1y * v2y) / (l1 * l2);
+    if (cosang > lim) continue; // ângulo ~180°, vértice redundante
+    out.push(b);
+  }
+  return out.length >= 3 ? out : ring;
+}
+
+/** Ponto dentro de triângulo (teste de sinais). */
+function pointInTri(
+  px: number, py: number,
+  ax: number, ay: number, bx: number, by: number, cx: number, cy: number
+): boolean {
+  const d1 = (px - bx) * (ay - by) - (ax - bx) * (py - by);
+  const d2 = (px - cx) * (by - cy) - (bx - cx) * (py - cy);
+  const d3 = (px - ax) * (cy - ay) - (cx - ax) * (py - ay);
+  const neg = d1 < 0 || d2 < 0 || d3 < 0;
+  const pos = d1 > 0 || d2 > 0 || d3 > 0;
+  return !(neg && pos);
+}
+
+/** SAT: triângulo 2D vs AABB. */
+function triAabbOverlap(
+  ax: number, ay: number, bx: number, by: number, cx: number, cy: number,
+  minx: number, miny: number, maxx: number, maxy: number
+): boolean {
+  if (Math.min(ax, bx, cx) > maxx || Math.max(ax, bx, cx) < minx) return false;
+  if (Math.min(ay, by, cy) > maxy || Math.max(ay, by, cy) < miny) return false;
+  const tx = [ax, bx, cx], ty = [ay, by, cy];
+  const rx = [minx, maxx, maxx, minx], ry = [miny, miny, maxy, maxy];
+  for (let i = 0; i < 3; i++) {
+    const j = (i + 1) % 3;
+    const nx = -(ty[j] - ty[i]);
+    const ny = tx[j] - tx[i];
+    let tmin = Infinity, tmax = -Infinity, rmin = Infinity, rmax = -Infinity;
+    for (let k = 0; k < 3; k++) { const p = nx * tx[k] + ny * ty[k]; tmin = Math.min(tmin, p); tmax = Math.max(tmax, p); }
+    for (let k = 0; k < 4; k++) { const p = nx * rx[k] + ny * ry[k]; rmin = Math.min(rmin, p); rmax = Math.max(rmax, p); }
+    if (tmax < rmin || rmax < tmin) return false;
+  }
+  return true;
+}
+
+/**
+ * Contorno rasterizado: projeta triângulos numa grade, extrai as arestas de
+ * fronteira das células preenchidas e encadeia em anéis (exterior + furos).
+ * Substitui união booleana de polígonos — determinístico e O(n).
+ */
+function rasterFootprint(tris: number[], cell: number, maxCells: number): Ring[] {
+  const nTri = tris.length / 6;
+  if (nTri < 1) return [];
+  let minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+  for (let i = 0; i < tris.length; i += 2) {
+    if (tris[i] < minx) minx = tris[i];
+    if (tris[i] > maxx) maxx = tris[i];
+    if (tris[i + 1] < miny) miny = tris[i + 1];
+    if (tris[i + 1] > maxy) maxy = tris[i + 1];
+  }
+  const w = maxx - minx, h = maxy - miny;
+  if (!(w > 0) || !(h > 0)) return [];
+
+  let cs = cell;
+  while (Math.ceil(w / cs) * Math.ceil(h / cs) > maxCells) cs *= 1.5;
+
+  const nx = Math.ceil(w / cs) + 2;
+  const ny = Math.ceil(h / cs) + 2;
+  const ox = minx - cs, oy = miny - cs;
+  const grid = new Uint8Array(nx * ny);
+
+  // Passe A: amostragem no centro da célula (sem viés sistemático de área).
+  // Passe B (fallback): sobreposição conservadora, para elementos finos que
+  // não capturam nenhum centro de célula (paredes, montantes, perfis).
+  const fill = (conservative: boolean) => {
+    let hits = 0;
+    for (let t = 0; t < nTri; t++) {
+      const k = t * 6;
+      const ax = tris[k], ay = tris[k + 1], bx = tris[k + 2], by = tris[k + 3], cx = tris[k + 4], cy = tris[k + 5];
+      const i0 = clamp(Math.floor((Math.min(ax, bx, cx) - ox) / cs), 0, nx - 1);
+      const i1 = clamp(Math.floor((Math.max(ax, bx, cx) - ox) / cs), 0, nx - 1);
+      const j0 = clamp(Math.floor((Math.min(ay, by, cy) - oy) / cs), 0, ny - 1);
+      const j1 = clamp(Math.floor((Math.max(ay, by, cy) - oy) / cs), 0, ny - 1);
+      for (let j = j0; j <= j1; j++) {
+        for (let i = i0; i <= i1; i++) {
+          const idx = j * nx + i;
+          if (grid[idx]) continue;
+          const hit = conservative
+            ? triAabbOverlap(ax, ay, bx, by, cx, cy, ox + i * cs, oy + j * cs, ox + (i + 1) * cs, oy + (j + 1) * cs)
+            : pointInTri(ox + (i + 0.5) * cs, oy + (j + 0.5) * cs, ax, ay, bx, by, cx, cy);
+          if (hit) { grid[idx] = 1; hits++; }
+        }
+      }
+    }
+    return hits;
+  };
+  if (fill(false) === 0) fill(true);
+
+  // Arestas de fronteira, orientadas CCW ao redor de cada célula preenchida.
+  const edges: number[] = []; // x0,y0,x1,y1 (coordenadas inteiras de grade)
+  const filled = (i: number, j: number) => (i < 0 || j < 0 || i >= nx || j >= ny ? 0 : grid[j * nx + i]);
+  for (let j = 0; j < ny; j++) {
+    for (let i = 0; i < nx; i++) {
+      if (!grid[j * nx + i]) continue;
+      if (!filled(i, j - 1)) edges.push(i, j, i + 1, j);
+      if (!filled(i + 1, j)) edges.push(i + 1, j, i + 1, j + 1);
+      if (!filled(i, j + 1)) edges.push(i + 1, j + 1, i, j + 1);
+      if (!filled(i - 1, j)) edges.push(i, j + 1, i, j);
+    }
+  }
+  if (!edges.length) return [];
+
+  const startMap = new Map<number, number[]>();
+  const nEdges = edges.length / 4;
+  const key = (x: number, y: number) => y * (nx + 2) + x;
+  for (let e = 0; e < nEdges; e++) {
+    const k = key(edges[e * 4], edges[e * 4 + 1]);
+    const list = startMap.get(k);
+    if (list) list.push(e); else startMap.set(k, [e]);
+  }
+
+  const used = new Uint8Array(nEdges);
+  const loops: Ring[] = [];
+  for (let seed = 0; seed < nEdges; seed++) {
+    if (used[seed]) continue;
+    const loop: Ring = [];
+    let cur = seed;
+    let guard = 0;
+    while (cur >= 0 && !used[cur] && guard++ < nEdges + 4) {
+      used[cur] = 1;
+      const x0 = edges[cur * 4], y0 = edges[cur * 4 + 1];
+      const x1 = edges[cur * 4 + 2], y1 = edges[cur * 4 + 3];
+      loop.push([ox + x0 * cs, oy + y0 * cs]);
+      const dx = x1 - x0, dy = y1 - y0;
+      const cands = startMap.get(key(x1, y1)) || [];
+      // Preferência: direita, reto, esquerda, volta (garante separação de anéis).
+      const prefs: Vec2[] = [[dy, -dx], [dx, dy], [-dy, dx], [-dx, -dy]];
+      let next = -1;
+      for (const p of prefs) {
+        for (const c of cands) {
+          if (used[c]) continue;
+          if (edges[c * 4 + 2] - edges[c * 4] === p[0] && edges[c * 4 + 3] - edges[c * 4 + 1] === p[1]) { next = c; break; }
+        }
+        if (next >= 0) break;
+      }
+      cur = next;
+    }
+    if (loop.length >= 4) loops.push(loop);
+  }
+  return loops;
+}
+
+/** Constrói os anéis finais (exterior + furos) a partir dos loops rasterizados. */
+function ringsFromLoops(loops: Ring[], tol: number, minHoleArea: number): Ring[] {
+  const scored = loops
+    .map((l) => ({ ring: dropCollinear(simplifyRing(l, tol)), a: ringArea(l) }))
+    .filter((o) => o.ring.length >= 3);
+  if (!scored.length) return [];
+  scored.sort((p, q) => Math.abs(q.a) - Math.abs(p.a));
+  const outer = scored[0];
+  const rings: Ring[] = [outer.a > 0 ? outer.ring : outer.ring.slice().reverse()];
+  for (let i = 1; i < scored.length; i++) {
+    const s = scored[i];
+    if (Math.abs(s.a) < minHoleArea) continue;
+    if (s.a > 0) continue; // outro componente desconexo — ignorado
+    rings.push(s.ring.slice().reverse()); // furo com sentido oposto ao anel externo
+  }
+  return rings;
+}
+
+/* =========================================================================
+   5. GEORREFERENCIAMENTO (WGS84)
+   ========================================================================= */
+
+/** Metros por grau, corrigidos pela latitude (evita o erro do 111320 fixo). */
+function metersPerDegree(latDeg: number): { mLat: number; mLon: number } {
+  const p = (latDeg * Math.PI) / 180;
+  const mLat = 111132.92 - 559.82 * Math.cos(2 * p) + 1.175 * Math.cos(4 * p) - 0.0023 * Math.cos(6 * p);
+  const mLon = 111412.84 * Math.cos(p) - 93.5 * Math.cos(3 * p) + 0.118 * Math.cos(5 * p);
+  return { mLat, mLon: Math.abs(mLon) < 1 ? 1 : mLon };
+}
+
+function makeProjector(anchor: Anchor) {
+  const { mLat, mLon } = metersPerDegree(anchor.lat);
+  const th = (anchor.rotation * Math.PI) / 180;
+  const cos = Math.cos(th), sin = Math.sin(th);
+  return (x: number, y: number): Vec2 => {
+    const xr = x * cos - y * sin;
+    const yr = x * sin + y * cos;
+    return [anchor.lon + xr / mLon, anchor.lat + yr / mLat];
+  };
+}
+
+/** IfcCompoundPlaneAngleMeasure -> graus decimais. */
+function ifcAngleToDeg(v: unknown): number | null {
+  if (!Array.isArray(v) || !v.length) return null;
+  const n = v.map((e: any) => (typeof e === 'number' ? e : e?.value ?? 0));
+  const sign = n[0] < 0 ? -1 : 1;
+  const deg = Math.abs(n[0]) + (n[1] || 0) / 60 + (n[2] || 0) / 3600 + (n[3] || 0) / 3600e6;
+  return sign * deg;
+}
+
+/* =========================================================================
+   6. CARREGAMENTO DE DEPENDÊNCIAS (dinâmico, tolerante a falha)
+   ========================================================================= */
+
+type Reporter = (v: number, msg: string, lv?: LogLevel) => void;
+
+let _webifc: any = null;
+let _api: any = null;
+let _sdk: any = null;
+let _wasmBaseUsed = '';
+
+async function loadWebIfc(report: Reporter): Promise<any> {
+  if (_api) return _api;
+  report(0.02, 'Carregando web-ifc (WebAssembly)…');
+  if (!_webifc) _webifc = await import(/* @vite-ignore */ WEB_IFC_ESM);
+  let lastErr: unknown = null;
+  for (const base of WASM_BASES) {
+    try {
+      const api = new _webifc.IfcAPI();
+      api.SetWasmPath(base, true);
+      await api.Init();
+      _api = api;
+      _wasmBaseUsed = base;
+      report(0.06, 'WASM inicializado: ' + base, 'ok');
+      return api;
+    } catch (e) {
+      lastErr = e;
+      report(0.02, 'Falha no WASM em ' + base + ' — tentando alternativa.', 'warn');
+    }
+  }
+  throw lastErr || new Error('Não foi possível inicializar o web-ifc');
+}
+
+async function loadSdk(): Promise<any> {
+  if (_sdk) return _sdk;
+  _sdk = await import(/* @vite-ignore */ GIRAFFE_SDK_ESM);
+  return _sdk;
+}
+
+/* =========================================================================
+   7. MOTOR DE IMPORTAÇÃO IFC
+   ========================================================================= */
+
+class IfcImportEngine {
+  private api: any;
+  private W: any;
+  private modelID = -1;
+  private report: Reporter;
+
+  public unitScale = 1;
+  public verticalAxis: 'z' | 'y' = 'z';
+  public modelCenter: Vec2 = [0, 0];
+  public ifcGeo: { lon: number; lat: number; elev: number } | null = null;
+
+  constructor(api: any, webifc: any, report: Reporter) {
+    this.api = api; this.W = webifc; this.report = report;
+  }
+
+  open(buffer: ArrayBuffer): void {
+    this.modelID = this.api.OpenModel(new Uint8Array(buffer), {
+      COORDINATE_TO_ORIGIN: false,
+      USE_FAST_BOOLS: true,
+    });
+  }
+
+  close(): void {
+    if (this.modelID >= 0) { try { this.api.CloseModel(this.modelID); } catch (e) { /* noop */ } }
+    this.modelID = -1;
+  }
+
+  private lines(type: number): number[] {
+    const out: number[] = [];
+    if (typeof type !== 'number') return out;
+    try {
+      const v = this.api.GetLineIDsWithType(this.modelID, type);
+      for (let i = 0; i < v.size(); i++) out.push(v.get(i));
+    } catch (e) { /* tipo ausente no schema */ }
+    return out;
+  }
+
+  private line(id: number): any {
+    try { return this.api.GetLine(this.modelID, id); } catch (e) { return null; }
+  }
+
+  /* ---------- Unidades ---------- */
+  detectUnitScale(): number {
+    const PREFIX: Record<string, number> = {
+      EXA: 1e18, PETA: 1e15, TERA: 1e12, GIGA: 1e9, MEGA: 1e6, KILO: 1e3, HECTO: 1e2, DECA: 1e1,
+      DECI: 1e-1, CENTI: 1e-2, MILLI: 1e-3, MICRO: 1e-6, NANO: 1e-9,
+    };
+    let scale = 1;
+    for (const pid of this.lines(this.W.IFCPROJECT)) {
+      const proj = this.line(pid);
+      const ua = proj?.UnitsInContext?.value ? this.line(proj.UnitsInContext.value) : null;
+      if (!ua?.Units) continue;
+      for (const ref of ua.Units) {
+        const u = this.line(ref.value);
+        if (!u) continue;
+        const ut = u.UnitType?.value;
+        if (ut !== 'LENGTHUNIT') continue;
+        if (u.Prefix?.value) scale = PREFIX[u.Prefix.value] ?? 1;
+        else if (u.ConversionFactor?.value) {
+          const cf = this.line(u.ConversionFactor.value);
+          const val = cf?.ValueComponent?.value;
+          if (typeof val === 'number') scale = val;
+        } else scale = 1;
+      }
+    }
+    this.unitScale = scale;
+    return scale;
+  }
+
+  /* ---------- Georreferenciamento nativo do IFC ---------- */
+  detectGeoRef(): { lon: number; lat: number; elev: number } | null {
+    for (const sid of this.lines(this.W.IFCSITE)) {
+      const site = this.line(sid);
+      if (!site) continue;
+      const lat = ifcAngleToDeg(site.RefLatitude);
+      const lon = ifcAngleToDeg(site.RefLongitude);
+      if (lat !== null && lon !== null && (lat !== 0 || lon !== 0)) {
+        const elev = typeof site.RefElevation?.value === 'number' ? site.RefElevation.value : 0;
+        this.ifcGeo = { lon, lat, elev };
+        return this.ifcGeo;
+      }
+    }
+    return null;
+  }
+
+  /* ---------- Hierarquia espacial + Psets ---------- */
+  readMeta(): Map<number, IfcMeta> {
+    const meta = new Map<number, IfcMeta>();
+
+    // Agregação (Project -> Site -> Building -> Storey)
+    const parentOf = new Map<number, number>();
+    for (const rid of this.lines(this.W.IFCRELAGGREGATES)) {
+      const rel = this.line(rid);
+      if (!rel?.RelatingObject || !rel.RelatedObjects) continue;
+      for (const o of rel.RelatedObjects) parentOf.set(o.value, rel.RelatingObject.value);
+    }
+
+    const storeyName = new Map<number, string>();
+    const storeyElev = new Map<number, number>();
+    const buildingOfStorey = new Map<number, string>();
+
+    const buildingName = new Map<number, string>();
+    for (const bid of this.lines(this.W.IFCBUILDING)) {
+      const b = this.line(bid);
+      buildingName.set(bid, b?.Name?.value || b?.LongName?.value || 'Edifício ' + bid);
+    }
+    for (const sid of this.lines(this.W.IFCBUILDINGSTOREY)) {
+      const s = this.line(sid);
+      storeyName.set(sid, s?.Name?.value || s?.LongName?.value || 'Pavimento ' + sid);
+      storeyElev.set(sid, typeof s?.Elevation?.value === 'number' ? s.Elevation.value : NaN);
+      let p = parentOf.get(sid);
+      let guard = 0;
+      while (p !== undefined && guard++ < 12) {
+        if (buildingName.has(p)) { buildingOfStorey.set(sid, buildingName.get(p) as string); break; }
+        p = parentOf.get(p);
+      }
+    }
+
+    // Contenção espacial (Storey -> elementos)
+    const structureOf = new Map<number, number>();
+    for (const rid of this.lines(this.W.IFCRELCONTAINEDINSPATIALSTRUCTURE)) {
+      const rel = this.line(rid);
+      if (!rel?.RelatingStructure || !rel.RelatedElements) continue;
+      for (const e of rel.RelatedElements) structureOf.set(e.value, rel.RelatingStructure.value);
+    }
+
+    // Psets
+    const psetsOf = new Map<number, Record<string, Record<string, unknown>>>();
+    for (const rid of this.lines(this.W.IFCRELDEFINESBYPROPERTIES)) {
+      const rel = this.line(rid);
+      const pid = rel?.RelatingPropertyDefinition?.value;
+      if (!pid || !rel.RelatedObjects) continue;
+      const pset = this.line(pid);
+      if (!pset?.HasProperties) continue;
+      const setName = pset.Name?.value || 'Pset';
+      const props: Record<string, unknown> = {};
+      for (const pr of pset.HasProperties) {
+        const p = this.line(pr.value);
+        const k = p?.Name?.value;
+        if (!k) continue;
+        const raw = p.NominalValue?.value;
+        props[k] = raw === undefined || raw === null ? '' : raw;
+      }
+      for (const o of rel.RelatedObjects) {
+        const cur = psetsOf.get(o.value) || {};
+        cur[setName] = { ...(cur[setName] || {}), ...props };
+        psetsOf.set(o.value, cur);
+      }
+    }
+
+    const attach = (id: number) => {
+      const el = this.line(id);
+      const st = structureOf.get(id);
+      meta.set(id, {
+        globalId: el?.GlobalId?.value || '',
+        name: el?.Name?.value || '',
+        description: el?.Description?.value || '',
+        storey: st !== undefined ? (storeyName.get(st) || '') : '',
+        storeyElevation: st !== undefined && !Number.isNaN(storeyElev.get(st) as number) ? (storeyElev.get(st) as number) : null,
+        building: st !== undefined ? (buildingOfStorey.get(st) || '') : '',
+        psets: psetsOf.get(id) || {},
+      });
+    };
+
+    structureOf.forEach((_v, k) => attach(k));
+    psetsOf.forEach((_v, k) => { if (!meta.has(k)) attach(k); });
+    return meta;
+  }
+
+  /* ---------- Geometria ---------- */
+  private typeCodes(): Array<{ code: number; name: string }> {
+    const names = Object.keys(CATEGORY_STYLE);
+    const out: Array<{ code: number; name: string }> = [];
+    for (const n of names) {
+      const code = this.W[n];
+      if (typeof code === 'number') out.push({ code, name: n });
+    }
+    return out;
+  }
+
+  async streamGeometry(opts: ImportOptions): Promise<Map<number, IfcRawElement>> {
+    const elements = new Map<number, IfcRawElement>();
+    const types = this.typeCodes();
+    const scale = opts.unitScale ?? this.unitScale;
+
+    // Passe 1: coleta bruta em coordenadas do modelo (x,y,z sem remapeamento).
+    const raw: Array<{ id: number; cat: string; v: Float64Array; idx: Uint32Array; color: string; op: number }> = [];
+
+    for (let ti = 0; ti < types.length; ti++) {
+      const { code, name } = types[ti];
+      this.report(0.10 + 0.35 * (ti / types.length), 'Lendo geometria: ' + prettyCategory(name) + '…');
+      try {
+        this.api.StreamAllMeshesWithTypes(this.modelID, [code], (mesh: any) => {
+          const id = mesh.expressID;
+          const geoms = mesh.geometries;
+          const n = geoms.size();
+          for (let g = 0; g < n; g++) {
+            const placed = geoms.get(g);
+            let geom: any = null;
+            try { geom = this.api.GetGeometry(this.modelID, placed.geometryExpressID); } catch (e) { continue; }
+            if (!geom) continue;
+            const vsrc = this.api.GetVertexArray(geom.GetVertexData(), geom.GetVertexDataSize());
+            const isrc = this.api.GetIndexArray(geom.GetIndexData(), geom.GetIndexDataSize());
+            const m = placed.flatTransformation;
+            const nv = vsrc.length / 6;
+            const v = new Float64Array(nv * 3);
+            for (let k = 0; k < nv; k++) {
+              const x = vsrc[k * 6], y = vsrc[k * 6 + 1], z = vsrc[k * 6 + 2];
+              v[k * 3] = (m[0] * x + m[4] * y + m[8] * z + m[12]) * scale;
+              v[k * 3 + 1] = (m[1] * x + m[5] * y + m[9] * z + m[13]) * scale;
+              v[k * 3 + 2] = (m[2] * x + m[6] * y + m[10] * z + m[14]) * scale;
+            }
+            const c = placed.color;
+            const hex = '#' + [c.x, c.y, c.z].map((f: number) => clamp(Math.round(f * 255), 0, 255).toString(16).padStart(2, '0')).join('');
+            raw.push({
+              id, cat: name, v, idx: new Uint32Array(isrc),
+              color: hex === '#000000' ? (CATEGORY_STYLE[name] || DEFAULT_STYLE).color : hex,
+              op: typeof c.w === 'number' && c.w > 0 ? c.w : 1,
+            });
+            geom.delete();
+          }
+        });
+      } catch (e) {
+        this.report(0, 'Categoria ' + name + ' ignorada: ' + String(e), 'warn');
+      }
+      await sleep(0);
+    }
+
+    if (!raw.length) return elements;
+
+    // Detecção do eixo vertical.
+    this.verticalAxis = opts.verticalAxis === 'auto' ? this.voteVerticalAxis(raw) : opts.verticalAxis;
+    const vy = this.verticalAxis === 'y';
+
+    // Passe 2: remapeia para (X, Y horizontal / Z vertical) e acumula por elemento.
+    this.report(0.48, 'Projetando ' + raw.length + ' malhas…');
+    for (let r = 0; r < raw.length; r++) {
+      const item = raw[r];
+      let el = elements.get(item.id);
+      if (!el) {
+        const st = CATEGORY_STYLE[item.cat] || DEFAULT_STYLE;
+        el = {
+          expressID: item.id, category: item.cat, tris: [], pts: [], triCount: 0, overflow: false,
+          minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity, minZ: Infinity, maxZ: -Infinity,
+          color: item.color || st.color, opacity: st.opacity,
+        };
+        elements.set(item.id, el);
+      }
+      const v = item.v, idx = item.idx;
+      const nv = v.length / 3;
+      const px = new Float64Array(nv), py = new Float64Array(nv);
+      for (let k = 0; k < nv; k++) {
+        const a = v[k * 3], b = v[k * 3 + 1], c = v[k * 3 + 2];
+        const X = a;
+        const Y = vy ? -c : b;
+        const Z = vy ? b : c;
+        px[k] = X; py[k] = Y;
+        if (X < el.minX) el.minX = X; if (X > el.maxX) el.maxX = X;
+        if (Y < el.minY) el.minY = Y; if (Y > el.maxY) el.maxY = Y;
+        if (Z < el.minZ) el.minZ = Z; if (Z > el.maxZ) el.maxZ = Z;
+        el.pts.push(X, Y);
+      }
+      for (let t = 0; t + 2 < idx.length; t += 3) {
+        if (el.triCount >= opts.maxTris) { el.overflow = true; break; }
+        const i0 = idx[t], i1 = idx[t + 1], i2 = idx[t + 2];
+        const ax = px[i0], ay = py[i0], bx = px[i1], by = py[i1], cx = px[i2], cy = py[i2];
+        const a2 = Math.abs((bx - ax) * (cy - ay) - (cx - ax) * (by - ay));
+        if (a2 < 1e-7) continue; // face vertical -> degenerada na projeção
+        el.tris.push(ax, ay, bx, by, cx, cy);
+        el.triCount++;
+      }
+      if (r % 400 === 0) await sleep(0);
+    }
+
+    // Origem local = centro do bbox global em XY.
+    let gminx = Infinity, gminy = Infinity, gmaxx = -Infinity, gmaxy = -Infinity;
+    elements.forEach((e) => {
+      if (e.minX < gminx) gminx = e.minX; if (e.maxX > gmaxx) gmaxx = e.maxX;
+      if (e.minY < gminy) gminy = e.minY; if (e.maxY > gmaxy) gmaxy = e.maxY;
+    });
+    this.modelCenter = [(gminx + gmaxx) / 2, (gminy + gmaxy) / 2];
+    return elements;
+  }
+
+  /** Vota o eixo vertical usando a espessura mínima das lajes. */
+  private voteVerticalAxis(raw: Array<{ cat: string; v: Float64Array }>): 'z' | 'y' {
+    let votesY = 0, votesZ = 0;
+    for (const item of raw) {
+      if (item.cat !== 'IFCSLAB' && item.cat !== 'IFCROOF') continue;
+      const v = item.v;
+      let mnx = Infinity, mxx = -Infinity, mny = Infinity, mxy = -Infinity, mnz = Infinity, mxz = -Infinity;
+      for (let k = 0; k < v.length; k += 3) {
+        if (v[k] < mnx) mnx = v[k]; if (v[k] > mxx) mxx = v[k];
+        if (v[k + 1] < mny) mny = v[k + 1]; if (v[k + 1] > mxy) mxy = v[k + 1];
+        if (v[k + 2] < mnz) mnz = v[k + 2]; if (v[k + 2] > mxz) mxz = v[k + 2];
+      }
+      const ex = mxx - mnx, ey = mxy - mny, ez = mxz - mnz;
+      if (ey < ex && ey < ez) votesY++;
+      if (ez < ex && ez < ey) votesZ++;
+    }
+    if (votesY + votesZ === 0) return 'z';
+    return votesY > votesZ ? 'y' : 'z';
+  }
+
+  /* ---------- Pegadas (footprints) ---------- */
+  buildElements(rawEls: Map<number, IfcRawElement>, meta: Map<number, IfcMeta>, opts: ImportOptions): BuiltElement[] {
+    const out: BuiltElement[] = [];
+    const cx0 = this.modelCenter[0], cy0 = this.modelCenter[1];
+
+    rawEls.forEach((el) => {
+      if (!(el.maxX > el.minX) || !(el.maxY > el.minY)) return;
+
+      const hull = convexHull(el.pts);
+      if (hull.length < 3) return;
+      const hullArea = Math.abs(ringArea(hull));
+      if (hullArea < 0.01) return;
+
+      let rings: Ring[] = [];
+      let mode: 'hull' | 'raster' = 'hull';
+
+      const wantRaster = opts.contourMode === 'raster'
+        || (opts.contourMode === 'auto' && !el.overflow && el.triCount > 2 && el.triCount <= opts.maxTris);
+
+      if (wantRaster) {
+        const minDim = Math.min(el.maxX - el.minX, el.maxY - el.minY);
+        const cell = clamp(Math.min(opts.cellSize, Math.max(minDim / 3, 0.04)), 0.03, 2);
+        const loops = rasterFootprint(el.tris, cell, 240 * 240);
+        const built = ringsFromLoops(loops, Math.max(opts.simplifyTol, cell * 0.75), cell * cell * 6);
+        if (built.length) {
+          const a = Math.abs(ringArea(built[0]));
+          // 'auto': só troca o hull pelo contorno se houver ganho real de forma.
+          if (opts.contourMode === 'raster' || (a > 0.01 && a < hullArea * 0.97)) {
+            rings = built; mode = 'raster';
+          }
+        }
+      }
+
+      if (!rings.length) rings = [dropCollinear(simplifyRing(hull, opts.simplifyTol))];
+
+      const outer = rings[0];
+      if (outer.length < 3) return;
+
+      // Translada para a origem local do modelo.
+      const shifted = rings.map((r) => r.map((p) => [p[0] - cx0, p[1] - cy0] as Vec2));
+
+      out.push({
+        expressID: el.expressID,
+        category: el.category,
+        rings: shifted,
+        area: Math.abs(ringArea(shifted[0])),
+        perimeter: ringPerimeter(shifted[0]),
+        centroid: ringCentroid(shifted[0]),
+        baseHeight: el.minZ,
+        topHeight: el.maxZ,
+        color: el.color,
+        opacity: el.opacity,
+        mode,
+        meta: meta.get(el.expressID) || {
+          globalId: '', name: '', description: '', storey: '', storeyElevation: null, building: '', psets: {},
+        },
+      });
+    });
+
+    return out;
+  }
+}
+
+/* =========================================================================
+   8. AGRUPAMENTO DE LAJES EMPILHADAS
+   ========================================================================= */
+
+/**
+ * Agrupa lajes idênticas e empilhadas do mesmo edifício num único objeto
+ * nativo do Giraffe (levels + floorToFloor). Lajes únicas ou com espaçamento
+ * irregular permanecem como elementos individuais.
+ */
+function groupStacked(
+  elements: BuiltElement[],
+  opts: ImportOptions
+): { groups: StackGroup[]; singles: BuiltElement[] } {
+  const groups: StackGroup[] = [];
+  const singles: BuiltElement[] = [];
+
+  const target = new Set(opts.groupCategories);
+  const eligible: BuiltElement[] = [];
+  for (const e of elements) {
+    if (opts.groupSlabs && target.has(e.category)) eligible.push(e);
+    else singles.push(e);
+  }
+
+  // Assinatura: edifício + categoria + área + perímetro + centróide + espessura.
+  const sig = (e: BuiltElement) => [
+    e.meta.building || '·',
+    e.category,
+    round(e.area, 1),
+    round(e.perimeter, 1),
+    round(e.centroid[0], 1),
+    round(e.centroid[1], 1),
+    round(e.topHeight - e.baseHeight, 2),
+    e.rings.length,
+  ].join('|');
+
+  const buckets = new Map<string, BuiltElement[]>();
+  for (const e of eligible) {
+    const k = sig(e);
+    const b = buckets.get(k);
+    if (b) b.push(e); else buckets.set(k, [e]);
+  }
+
+  buckets.forEach((list) => {
+    if (list.length < opts.minLevels) { singles.push(...list); return; }
+    list.sort((a, b) => a.baseHeight - b.baseHeight);
+
+    // Particiona em corridas maximais de espaçamento constante (guloso, sem
+    // repetir nem perder elementos na fronteira entre corridas).
+    let i = 0;
+    while (i < list.length) {
+      let j = i + 1;
+      let delta = NaN;
+      while (j < list.length) {
+        const d = list[j].baseHeight - list[j - 1].baseHeight;
+        if (!(d >= opts.f2fMin && d <= opts.f2fMax)) break;
+        if (!Number.isFinite(delta)) { delta = d; j++; continue; }
+        if (Math.abs(d - delta) > opts.f2fTolerance) break;
+        j++;
+      }
+      const run = list.slice(i, j);
+      if (run.length >= opts.minLevels && Number.isFinite(delta)) {
+        groups.push({
+          members: run,
+          levels: run.length,
+          floorToFloor: delta,
+          baseHeight: run[0].baseHeight,
+          thickness: run[0].topHeight - run[0].baseHeight,
+        });
+        i = j;
+      } else {
+        singles.push(list[i]);
+        i += 1;
+      }
+    }
+  });
+
+  return { groups, singles };
+}
+
+/* =========================================================================
+   9. CONSTRUÇÃO DAS FEATURES GEOJSON DO GIRAFFE
+   ========================================================================= */
+
+function psetProps(meta: IfcMeta, opts: ImportOptions): Record<string, unknown> {
+  const props: Record<string, unknown> = {};
+  if (!opts.flattenPsets) return props;
+  let n = 0;
+  for (const setName of Object.keys(meta.psets)) {
+    for (const propName of Object.keys(meta.psets[setName])) {
+      if (n >= opts.maxFlatProps) return props;
+      const v = meta.psets[setName][propName];
+      if (v === '' || v === null || v === undefined) continue;
+      props['kv_p_' + sanitizeKey(setName) + '__' + sanitizeKey(propName)] = v;
+      n++;
+    }
+  }
+  return props;
+}
+
+function ringsToCoords(rings: Ring[], project: (x: number, y: number) => Vec2, z: number | null): number[][][] {
+  return rings.map((r) => {
+    const closed = r.concat([r[0]]);
+    return closed.map((p) => {
+      const ll = project(p[0], p[1]);
+      return z === null ? [ll[0], ll[1]] : [ll[0], ll[1], z];
+    });
+  });
+}
+
+function buildFeatures(
+  singles: BuiltElement[],
+  groups: StackGroup[],
+  opts: ImportOptions,
+  anchor: Anchor,
+  layerFor: (cat: string) => string,
+  styleFor: (cat: string) => { color: string; opacity: number },
+  tag: string
+): any[] {
+  const project = makeProjector(anchor);
+  const features: any[] = [];
+
+  const baseProps = (e: BuiltElement) => {
+    const st = styleFor(e.category);
+    const base = round(e.baseHeight + opts.zDatum, 3);
+    return {
+      layerId: layerFor(e.category),
+      color: st.color,
+      fillOpacity: st.opacity,
+      stroke: st.color,
+      strokeWidth: 1,
+      forceStack: 'never',
+      baseHeight: base,
+      _baseHeight: base,
+      kv_ifc_tag: tag,
+      kv_ifc_expressId: e.expressID,
+      kv_ifc_globalId: e.meta.globalId,
+      kv_ifc_type: e.category,
+      kv_ifc_category: prettyCategory(e.category),
+      kv_ifc_name: e.meta.name,
+      kv_ifc_description: e.meta.description,
+      kv_ifc_storey: e.meta.storey,
+      kv_ifc_building: e.meta.building,
+      kv_ifc_footprintMode: e.mode,
+      kv_ifc_psets: e.meta.psets,
+    };
+  };
+
+  // ---- Elementos individuais ----
+  for (const e of singles) {
+    const h = Math.max(round(e.topHeight - e.baseHeight, 3), 0.05);
+    const base = round(e.baseHeight + opts.zDatum, 3);
+    features.push({
+      type: 'Feature',
+      properties: {
+        ...baseProps(e),
+        name: e.meta.name || prettyCategory(e.category) + ' ' + e.expressID,
+        height: h,
+        _height: round(base + h, 3),
+        ...psetProps(e.meta, opts),
+      },
+      geometry: {
+        type: 'Polygon',
+        coordinates: ringsToCoords(e.rings, project, opts.writeVertexZ ? base : null),
+      },
+    });
+  }
+
+  // ---- Pilhas agrupadas (levels + floorToFloor) ----
+  for (const g of groups) {
+    const e = g.members[0];
+    const base = round(g.baseHeight + opts.zDatum, 3);
+    const f2f = round(g.floorToFloor, 3);
+    const thick = Math.max(round(g.thickness, 3), 0.05);
+    features.push({
+      type: 'Feature',
+      properties: {
+        ...baseProps(e),
+        name: (e.meta.name || prettyCategory(e.category)) + ' · ' + g.levels + ' níveis',
+        // ATENÇÃO: 'height' sobrepõe levels × floorToFloor no Giraffe — não gravar aqui.
+        levels: g.levels,
+        floorToFloor: f2f,
+        noFacade: true,
+        slabThickness: thick,
+        _height: round(base + f2f * (g.levels - 1) + thick, 3),
+        kv_ifc_stacked: true,
+        kv_ifc_stackCount: g.levels,
+        kv_ifc_stackF2F: f2f,
+        kv_ifc_members: g.members.map((m) => m.meta.globalId || String(m.expressID)),
+        kv_ifc_storeys: g.members.map((m) => m.meta.storey).filter(Boolean),
+        ...psetProps(e.meta, opts),
+      },
+      geometry: {
+        type: 'Polygon',
+        coordinates: ringsToCoords(e.rings, project, opts.writeVertexZ ? base : null),
+      },
+    });
+  }
+
+  return features;
+}
+
+/* =========================================================================
+   10. ESCRITA NO GIRAFFE
+   ========================================================================= */
+
+const _layerCache = new Map<string, string>();
+
+async function ensureLayers(
+  sdk: any, categories: CategoryState[], opts: ImportOptions, report: Reporter
+): Promise<Record<string, string>> {
+  const map: Record<string, string> = {};
+  if (!opts.perCategoryLayers || !sdk) {
+    categories.forEach((c) => { map[c.category] = 'default'; });
+    return map;
+  }
+  for (const c of categories) {
+    if (!c.enabled) continue;
+    const cached = _layerCache.get(c.layerName);
+    if (cached) { map[c.category] = cached; continue; }
+    try {
+      const r = await sdk.rpc.invoke('createDrawingLayer', [c.layerName]);
+      const id = typeof r === 'string' ? r : (r?.id ?? r?.layerId ?? r?.name ?? c.layerName);
+      map[c.category] = id;
+      _layerCache.set(c.layerName, id);
+      report(0, 'Camada criada: ' + c.layerName + ' (id: ' + id + ')', 'ok');
+    } catch (e) {
+      map[c.category] = 'default';
+      report(0, 'Sem permissão/erro ao criar camada "' + c.layerName + '" — usando "default". ' + String(e), 'warn');
+    }
+  }
+  return map;
+}
+
+async function writeToGiraffe(sdk: any, features: any[], opts: ImportOptions, report: Reporter): Promise<number> {
+  let written = 0;
+  const chunks: any[][] = [];
+  for (let i = 0; i < features.length; i += opts.chunkSize) chunks.push(features.slice(i, i + opts.chunkSize));
+
+  for (let i = 0; i < chunks.length; i++) {
+    const chunk = chunks[i];
+    let ok = false;
+    if (opts.writer === 'createRawSections') {
+      try {
+        await sdk.rpc.invoke('createRawSections', [chunk]);
+        ok = true;
+      } catch (e) {
+        report(0, 'createRawSections falhou no lote ' + (i + 1) + ' — tentando importRawSections. ' + String(e), 'warn');
+      }
+    }
+    if (!ok) {
+      try {
+        await sdk.rpc.invoke('importRawSections', [{ type: 'FeatureCollection', features: chunk }]);
+        ok = true;
+      } catch (e) {
+        report(0, 'importRawSections falhou no lote ' + (i + 1) + ': ' + String(e), 'error');
+      }
+    }
+    if (ok) written += chunk.length;
+    report(0.85 + 0.15 * ((i + 1) / chunks.length), 'Gravando lote ' + (i + 1) + '/' + chunks.length + '…');
+    await sleep(0);
+  }
+  return written;
+}
+
+async function deleteTagged(sdk: any, tagPrefix: string, report: Reporter): Promise<number> {
+  const fc = sdk.giraffeState.get('rawSections');
+  const feats = fc?.features || [];
+  const ids = feats
+    .filter((f: any) => typeof f?.properties?.kv_ifc_tag === 'string' && f.properties.kv_ifc_tag.startsWith(tagPrefix))
+    .map((f: any) => f.properties.id)
+    .filter(Boolean);
+  if (!ids.length) { report(0, 'Nenhuma seção importada por este app foi encontrada.', 'info'); return 0; }
+  await sdk.rpc.invoke('deleteRawSections', [ids]);
+  report(0, ids.length + ' seções removidas.', 'ok');
+  return ids.length;
+}
+
+/* =========================================================================
+   11. HOOK DE LOG (diagnóstico embutido — DevTools indisponível no iframe)
+   ========================================================================= */
+
+function useLogger() {
+  const [entries, setEntries] = useState<LogEntry[]>([]);
+  const push = useCallback((msg: string, lv: LogLevel = 'info') => {
+    const t = new Date().toLocaleTimeString('pt-BR', { hour12: false });
+    setEntries((prev) => [...prev.slice(-400), { t, lv, msg }]);
+  }, []);
+  const clear = useCallback(() => setEntries([]), []);
+  return { entries, push, clear };
+}
+
+/* =========================================================================
+   12. COMPONENTES AUXILIARES
+   ========================================================================= */
+
+function Kpi({ value, label }: { value: string | number; label: string }) {
+  return (
+    <div className="kpi">
+      <b>{value}</b>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function Progress({ value, message }: { value: number; message: string }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className="progress" role="progressbar" aria-valuemin={0} aria-valuemax={100}
+        aria-valuenow={Math.round(value * 100)} aria-label="Progresso da importação">
+        <i style={{ width: Math.round(value * 100) + '%' }} />
+      </div>
+      <div className="progress-label">{message || '—'}</div>
+    </div>
+  );
+}
+
+/** Vista em planta dos footprints extraídos (validação visual antes da injeção). */
+function PlanPreview({ singles, groups, styleFor }: {
+  singles: BuiltElement[]; groups: StackGroup[];
+  styleFor: (c: string) => { color: string; opacity: number };
+}) {
+  const all = useMemo(() => singles.concat(groups.map((g) => g.members[0])), [singles, groups]);
+  const box = useMemo(() => {
+    let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+    all.forEach((e) => e.rings[0].forEach((p) => {
+      if (p[0] < a) a = p[0]; if (p[0] > c) c = p[0];
+      if (p[1] < b) b = p[1]; if (p[1] > d) d = p[1];
+    }));
+    return { a, b, c, d };
+  }, [all]);
+
+  if (!all.length || !Number.isFinite(box.a)) {
+    return <p className="hint">Nenhuma geometria para pré-visualizar.</p>;
+  }
+  const w = Math.max(box.c - box.a, 1), h = Math.max(box.d - box.b, 1);
+  const pad = Math.max(w, h) * 0.04;
+  const stackIds = new Set(groups.map((g) => g.members[0].expressID));
+
+  return (
+    <svg viewBox={`${box.a - pad} ${-(box.d + pad)} ${w + pad * 2} ${h + pad * 2}`}
+      style={{ width: '100%', height: 260, border: '1px solid var(--md-sys-color-outline-variant)',
+        background: 'var(--md-sys-color-surface-container-low)' }}
+      role="img" aria-label="Pré-visualização em planta dos elementos importados">
+      {all.map((e) => {
+        const st = styleFor(e.category);
+        const d = e.rings.map((r) => 'M' + r.map((p) => p[0].toFixed(2) + ' ' + (-p[1]).toFixed(2)).join('L') + 'Z').join(' ');
+        const stacked = stackIds.has(e.expressID);
+        return (
+          <path key={e.expressID} d={d} fill={st.color} fillOpacity={st.opacity * 0.55} fillRule="evenodd"
+            stroke={stacked ? 'var(--md-sys-color-primary)' : st.color}
+            strokeWidth={Math.max(w, h) / (stacked ? 260 : 700)} />
+        );
+      })}
+    </svg>
+  );
+}
+
+/* =========================================================================
+   13. APLICAÇÃO
+   ========================================================================= */
+
+function App() {
+  const log = useLogger();
+  const [tab, setTab] = useState<'import' | 'layers' | 'log'>('import');
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [progress, setProgress] = useState({ v: 0, m: '' });
+  const [busy, setBusy] = useState(false);
+  const [fileName, setFileName] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+  const [sdkReady, setSdkReady] = useState(false);
+  const [elements, setElements] = useState<BuiltElement[]>([]);
+  const [categories, setCategories] = useState<CategoryState[]>([]);
+  const [opts, setOpts] = useState<ImportOptions>(DEFAULT_OPTIONS);
+  const [anchor, setAnchor] = useState<Anchor>({ lon: -46.6333, lat: -23.5505, rotation: 0, source: 'padrão (São Paulo)' });
+  const [captureClick, setCaptureClick] = useState(false);
+  const [banner, setBanner] = useState<{ lv: 'ok' | 'error' | 'info'; msg: string } | null>(null);
+  const [stats, setStats] = useState({ meshes: 0, unit: 1, axis: 'z', georef: '—', written: 0 });
+  const sdkRef = useRef<any>(null);
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const tagRef = useRef('kvifc');
+
+  const report = useCallback<Reporter>((v, msg, lv) => {
+    setProgress({ v: clamp(v, 0, 1), m: msg });
+    if (msg) log.push(msg, lv || 'info');
+  }, [log]);
+
+  /* ---------- tema ---------- */
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: light)');
+    const apply = () => setTheme(mq.matches ? 'light' : 'dark');
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+  useEffect(() => {
+    document.documentElement.className = theme;
+  }, [theme]);
+
+  /* ---------- SDK do Giraffe ---------- */
+  useEffect(() => {
+    let alive = true;
+    loadSdk().then((sdk) => {
+      if (!alive) return;
+      sdkRef.current = sdk;
+      setSdkReady(true);
+      log.push('SDK @gi-nx/iframe-sdk carregado.', 'ok');
+      resolveAnchorFromProject(sdk);
+    }).catch((e) => {
+      log.push('SDK do Giraffe indisponível (modo pré-visualização): ' + String(e), 'warn');
+    });
+    return () => { alive = false; };
+  }, []);
+
+  const resolveAnchorFromProject = useCallback((sdk: any) => {
+    const tryCenter = (): Anchor | null => {
+      const keys = ['projectBounds', 'project', 'mapView', 'rawSections'];
+      for (const k of keys) {
+        let v: any = null;
+        try { v = sdk.giraffeState.get(k); } catch (e) { continue; }
+        if (!v) continue;
+        if (k === 'mapView' && Array.isArray(v.center) && v.center.length >= 2) {
+          return { lon: v.center[0], lat: v.center[1], rotation: 0, source: 'centro da vista do mapa' };
+        }
+        const feats = v.features || (v.geometry ? [v] : null);
+        if (!feats || !feats.length) continue;
+        let sx = 0, sy = 0, n = 0;
+        for (const f of feats) {
+          const g = f?.geometry;
+          if (!g) continue;
+          const flat = JSON.stringify(g.coordinates).match(/-?\d+\.\d+/g) || [];
+          for (let i = 0; i + 1 < flat.length; i += 2) { sx += parseFloat(flat[i]); sy += parseFloat(flat[i + 1]); n++; }
+          if (n > 4000) break;
+        }
+        if (n > 0) return { lon: sx / n, lat: sy / n, rotation: 0, source: 'centróide de "' + k + '"' };
+      }
+      return null;
+    };
+    const a = tryCenter();
+    if (a) {
+      setAnchor((prev) => ({ ...a, rotation: prev.rotation }));
+      log.push('Âncora resolvida por ' + a.source + ': ' + a.lon.toFixed(6) + ', ' + a.lat.toFixed(6), 'ok');
+    } else {
+      log.push('Não foi possível resolver a âncora pelo projeto — informe manualmente.', 'warn');
+    }
+  }, [log]);
+
+  /* ---------- captura de clique no mapa ---------- */
+  useEffect(() => {
+    if (!captureClick || !sdkRef.current) return;
+    const sdk = sdkRef.current;
+    let listenerId: any = null;
+    const read = () => {
+      const c = sdk.giraffeState.get('mapSelectCoord');
+      if (Array.isArray(c) && c.length >= 2) {
+        setAnchor((p) => ({ ...p, lon: c[0], lat: c[1], source: 'ponto clicado no mapa' }));
+        setCaptureClick(false);
+        log.push('Âncora definida pelo clique: ' + c[0].toFixed(6) + ', ' + c[1].toFixed(6), 'ok');
+      }
+    };
+    try { listenerId = sdk.giraffeState.addListener(['mapSelectCoord'], read); } catch (e) { /* noop */ }
+    const poll = window.setInterval(read, 500); // addListener não dispara em todos os contextos
+    return () => {
+      window.clearInterval(poll);
+      if (listenerId !== null) { try { sdk.giraffeState.removeListener(listenerId); } catch (e) { /* noop */ } }
+    };
+  }, [captureClick, log]);
+
+  /* ---------- pipeline de parsing ---------- */
+  const parseFile = useCallback(async (file: File) => {
+    if (busy) return;
+    setBusy(true);
+    setBanner(null);
+    setElements([]);
+    setCategories([]);
+    setFileName(file.name);
+    tagRef.current = 'kvifc:' + Date.now().toString(36);
+    log.push('Arquivo: ' + file.name + ' (' + (file.size / 1048576).toFixed(2) + ' MB)');
+
+    let engine: IfcImportEngine | null = null;
+    try {
+      const api = await loadWebIfc(report);
+      engine = new IfcImportEngine(api, _webifc, report);
+
+      report(0.08, 'Abrindo modelo…');
+      engine.open(await file.arrayBuffer());
+
+      const scale = engine.detectUnitScale();
+      report(0.09, 'Unidade de comprimento detectada: fator ' + scale + ' → metros');
+
+      const geo = engine.detectGeoRef();
+      if (geo) {
+        report(0.09, 'IfcSite georreferenciado: ' + geo.lat.toFixed(6) + ', ' + geo.lon.toFixed(6), 'ok');
+      }
+
+      report(0.10, 'Lendo hierarquia espacial e Psets…');
+      const meta = engine.readMeta();
+      report(0.10, meta.size + ' elementos com metadados/Psets.');
+
+      const rawEls = await engine.streamGeometry(opts);
+      report(0.55, rawEls.size + ' elementos com geometria. Eixo vertical: ' + engine.verticalAxis.toUpperCase());
+
+      report(0.60, 'Extraindo pegadas (footprints)…');
+      const built = engine.buildElements(rawEls, meta, opts);
+      await sleep(0);
+
+      const counts = new Map<string, number>();
+      built.forEach((e) => counts.set(e.category, (counts.get(e.category) || 0) + 1));
+      const cats: CategoryState[] = [];
+      counts.forEach((count, category) => {
+        const st = CATEGORY_STYLE[category] || DEFAULT_STYLE;
+        cats.push({
+          category, count, enabled: category !== 'IFCSPACE' && category !== 'IFCFURNISHINGELEMENT',
+          color: st.color, opacity: st.opacity, layerName: 'IFC · ' + prettyCategory(category),
+        });
+      });
+      cats.sort((a, b) => b.count - a.count);
+
+      setElements(built);
+      setCategories(cats);
+      setStats({
+        meshes: rawEls.size, unit: scale, axis: engine.verticalAxis,
+        georef: geo ? geo.lat.toFixed(5) + ', ' + geo.lon.toFixed(5) : '—', written: 0,
+      });
+      if (geo) setAnchor((p) => ({ ...p, lon: geo.lon, lat: geo.lat, source: 'IfcSite (georreferência do modelo)' }));
+
+      report(1, built.length + ' elementos prontos para injeção.', 'ok');
+      setBanner({ lv: 'ok', msg: built.length + ' elementos processados em ' + cats.length + ' categorias BIM.' });
+    } catch (e) {
+      report(1, 'Falha na leitura do IFC: ' + String(e), 'error');
+      setBanner({ lv: 'error', msg: 'Falha na leitura do IFC. Verifique o log de diagnóstico.' });
+    } finally {
+      if (engine) engine.close();
+      setBusy(false);
+    }
+  }, [busy, opts, report, log]);
+
+  /* ---------- agrupamento reativo ---------- */
+  const enabledSet = useMemo(() => new Set(categories.filter((c) => c.enabled).map((c) => c.category)), [categories]);
+  const visible = useMemo(() => elements.filter((e) => enabledSet.has(e.category)), [elements, enabledSet]);
+  const { groups, singles } = useMemo(() => groupStacked(visible, opts), [visible, opts]);
+
+  const styleFor = useCallback((cat: string) => {
+    const c = categories.find((x) => x.category === cat);
+    return c ? { color: c.color, opacity: c.opacity } : (CATEGORY_STYLE[cat] || DEFAULT_STYLE);
+  }, [categories]);
+
+  const collapsedLevels = useMemo(() => groups.reduce((s, g) => s + g.levels, 0), [groups]);
+  const featureCount = singles.length + groups.length;
+
+  /* ---------- injeção ---------- */
+  const inject = useCallback(async () => {
+    const sdk = sdkRef.current;
+    if (!sdk) { setBanner({ lv: 'error', msg: 'SDK do Giraffe indisponível nesta janela.' }); return; }
+    if (!featureCount) { setBanner({ lv: 'error', msg: 'Nenhum elemento selecionado para injetar.' }); return; }
+    setBusy(true); setBanner(null);
+    try {
+      report(0.80, 'Preparando camadas por categoria BIM…');
+      const layerMap = await ensureLayers(sdk, categories, opts, report);
+      const layerFor = (cat: string) => layerMap[cat] || 'default';
+
+      report(0.83, 'Convertendo para GeoJSON georreferenciado…');
+      const features = buildFeatures(singles, groups, opts, anchor, layerFor, styleFor, tagRef.current);
+      log.push('Features geradas: ' + features.length + ' (' + groups.length + ' pilhas agrupadas).');
+
+      const written = await writeToGiraffe(sdk, features, opts, report);
+      setStats((s) => ({ ...s, written }));
+      report(1, written + ' seções injetadas no Giraffe.', 'ok');
+      setBanner({
+        lv: written === features.length ? 'ok' : 'error',
+        msg: written + ' de ' + features.length + ' seções injetadas. Ative as camadas no painel do Giraffe se necessário.',
+      });
+    } catch (e) {
+      report(1, 'Falha na injeção: ' + String(e), 'error');
+      setBanner({ lv: 'error', msg: 'Falha na injeção. Verifique o log de diagnóstico.' });
+    } finally {
+      setBusy(false);
+    }
+  }, [categories, opts, anchor, singles, groups, featureCount, styleFor, report, log]);
+
+  const clearImport = useCallback(async () => {
+    const sdk = sdkRef.current;
+    if (!sdk) return;
+    setBusy(true);
+    try { await deleteTagged(sdk, 'kvifc', report); }
+    catch (e) { report(0, 'Falha ao remover: ' + String(e), 'error'); }
+    finally { setBusy(false); }
+  }, [report]);
+
+  /* ---------- handlers de arquivo ---------- */
+  const onDrop = (ev: React.DragEvent) => {
+    ev.preventDefault(); setDragOver(false);
+    const f = ev.dataTransfer.files?.[0];
+    if (f && /\.ifc$/i.test(f.name)) parseFile(f);
+    else setBanner({ lv: 'error', msg: 'Selecione um arquivo com extensão .ifc' });
+  };
+
+  function setOpt<K extends keyof ImportOptions>(k: K, v: ImportOptions[K]) {
+    setOpts((p) => ({ ...p, [k]: v }));
+  }
+
+  /* ======================= RENDER ======================= */
+  return (
+    <div className="app-shell">
+      <header className="app-header">
+        <div className="logo-container">
+          <span className="brand-logo" role="img" aria-label="Königsberger Vannucchi Arquitetos Associados" />
+        </div>
+        <h1 className="app-title">
+          Importador IFC
+          <small>{fileName || 'Nenhum arquivo carregado'}</small>
+        </h1>
+        <button className="icon-btn" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          aria-label={'Alternar para tema ' + (theme === 'dark' ? 'claro' : 'escuro')} title="Alternar tema">
+          {theme === 'dark' ? '☾' : '☀'}
+        </button>
+      </header>
+
+      <nav className="app-tabs" role="tablist" aria-label="Seções do aplicativo">
+        <button role="tab" aria-selected={tab === 'import'} onClick={() => setTab('import')}>Importar</button>
+        <button role="tab" aria-selected={tab === 'layers'} onClick={() => setTab('layers')}>Camadas</button>
+        <button role="tab" aria-selected={tab === 'log'} onClick={() => setTab('log')}>Log</button>
+      </nav>
+
+      <main className="app-main">
+        {banner && (
+          <div className={'banner banner-' + (banner.lv === 'ok' ? 'ok' : banner.lv === 'error' ? 'error' : 'info')} role="status">
+            {banner.msg}
+          </div>
+        )}
+
+        {tab === 'import' && (
+          <>
+            <section className="card" aria-labelledby="sec-arquivo">
+              <h2 id="sec-arquivo">1 · Arquivo IFC</h2>
+              <div className={'dropzone' + (dragOver ? ' is-over' : '')}
+                onClick={() => fileRef.current?.click()}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') fileRef.current?.click(); }}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={onDrop}
+                role="button" tabIndex={0} aria-label="Selecionar ou arrastar um arquivo IFC">
+                <strong>{fileName || 'Arraste um arquivo .ifc ou clique para selecionar'}</strong>
+                <span>Parsing local no navegador via WebAssembly (web-ifc) — nada é enviado a servidores.</span>
+              </div>
+              <input ref={fileRef} type="file" accept=".ifc" className="sr-only" id="ifc-file"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) parseFile(f); }} />
+              <label className="sr-only" htmlFor="ifc-file">Arquivo IFC</label>
+              <Progress value={progress.v} message={progress.m} />
+              <div className="kpi-grid">
+                <Kpi value={elements.length} label="Elementos" />
+                <Kpi value={categories.length} label="Categorias" />
+                <Kpi value={featureCount} label="Features" />
+                <Kpi value={groups.length} label="Pilhas" />
+                <Kpi value={collapsedLevels} label="Níveis" />
+              </div>
+            </section>
+
+            <section className="card" aria-labelledby="sec-geo">
+              <h2 id="sec-geo">2 · Georreferenciamento</h2>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="lon">Longitude da âncora</label>
+                  <input id="lon" type="number" step="0.000001" value={anchor.lon}
+                    onChange={(e) => setAnchor((p) => ({ ...p, lon: parseFloat(e.target.value) || 0, source: 'manual' }))} />
+                </div>
+                <div className="field">
+                  <label htmlFor="lat">Latitude da âncora</label>
+                  <input id="lat" type="number" step="0.000001" value={anchor.lat}
+                    onChange={(e) => setAnchor((p) => ({ ...p, lat: parseFloat(e.target.value) || 0, source: 'manual' }))} />
+                </div>
+              </div>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="rot">Rotação / norte (°)</label>
+                  <input id="rot" type="number" step="0.5" value={anchor.rotation}
+                    onChange={(e) => setAnchor((p) => ({ ...p, rotation: parseFloat(e.target.value) || 0 }))} />
+                </div>
+                <div className="field">
+                  <label htmlFor="datum">Cota de implantação (m)</label>
+                  <input id="datum" type="number" step="0.1" value={opts.zDatum}
+                    onChange={(e) => setOpt('zDatum', parseFloat(e.target.value) || 0)} />
+                </div>
+              </div>
+              <p className="hint">Origem: {anchor.source}. O centro do bounding box do modelo é ancorado nestas coordenadas.</p>
+              <div className="btn-row">
+                <button className="btn btn-outlined" disabled={!sdkReady}
+                  onClick={() => sdkRef.current && resolveAnchorFromProject(sdkRef.current)}>Usar centro do projeto</button>
+                <button className="btn btn-outlined" disabled={!sdkReady} onClick={() => setCaptureClick(true)}>
+                  {captureClick ? 'Aguardando clique…' : 'Capturar clique no mapa'}
+                </button>
+              </div>
+            </section>
+
+            <section className="card" aria-labelledby="sec-agr">
+              <h2 id="sec-agr">3 · Agrupamento de lajes empilhadas</h2>
+              <label className="check">
+                <input type="checkbox" checked={opts.groupSlabs} onChange={(e) => setOpt('groupSlabs', e.target.checked)} />
+                Colapsar lajes idênticas e empilhadas em objetos nativos (levels + floorToFloor)
+              </label>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="minlv">Mínimo de níveis</label>
+                  <input id="minlv" type="number" min={2} max={50} value={opts.minLevels}
+                    onChange={(e) => setOpt('minLevels', clamp(parseInt(e.target.value, 10) || 2, 2, 50))} />
+                </div>
+                <div className="field">
+                  <label htmlFor="tolf2f">Tolerância pé-direito (m)</label>
+                  <input id="tolf2f" type="number" step="0.01" value={opts.f2fTolerance}
+                    onChange={(e) => setOpt('f2fTolerance', parseFloat(e.target.value) || 0.08)} />
+                </div>
+              </div>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="f2fmin">Pé-direito mín. (m)</label>
+                  <input id="f2fmin" type="number" step="0.1" value={opts.f2fMin}
+                    onChange={(e) => setOpt('f2fMin', parseFloat(e.target.value) || 1.8)} />
+                </div>
+                <div className="field">
+                  <label htmlFor="f2fmax">Pé-direito máx. (m)</label>
+                  <input id="f2fmax" type="number" step="0.1" value={opts.f2fMax}
+                    onChange={(e) => setOpt('f2fMax', parseFloat(e.target.value) || 12)} />
+                </div>
+              </div>
+              <p className="hint">
+                {groups.length} pilha(s) detectada(s), colapsando {collapsedLevels} lajes.
+                Lajes únicas ou com espaçamento irregular permanecem individuais.
+              </p>
+            </section>
+
+            <section className="card" aria-labelledby="sec-prev">
+              <h2 id="sec-prev">4 · Pré-visualização em planta</h2>
+              <PlanPreview singles={singles} groups={groups} styleFor={styleFor} />
+              <p className="hint">Contorno destacado = pilha agrupada. Preto/cinza = elemento individual.</p>
+            </section>
+
+            <section className="card" aria-labelledby="sec-inj">
+              <h2 id="sec-inj">5 · Injeção no Giraffe</h2>
+              {!sdkReady && <div className="banner banner-info">SDK do Giraffe não detectado — modo pré-visualização.</div>}
+              <div className="btn-row">
+                <button className="btn btn-primary" disabled={busy || !featureCount || !sdkReady} onClick={inject}>
+                  Injetar {featureCount} feature(s)
+                </button>
+                <button className="btn btn-danger" disabled={busy || !sdkReady} onClick={clearImport}>
+                  Remover importação
+                </button>
+              </div>
+            </section>
+          </>
+        )}
+
+        {tab === 'layers' && (
+          <>
+            <section className="card" aria-labelledby="sec-cat">
+              <h2 id="sec-cat">Categorias BIM → camadas do Giraffe</h2>
+              <label className="check">
+                <input type="checkbox" checked={opts.perCategoryLayers}
+                  onChange={(e) => setOpt('perCategoryLayers', e.target.checked)} />
+                Criar uma camada de desenho por categoria (desmarcado: tudo em "default")
+              </label>
+              {!categories.length && <p className="hint">Carregue um arquivo IFC para listar as categorias.</p>}
+              {!!categories.length && (
+                <table className="kv">
+                  <thead>
+                    <tr>
+                      <th scope="col">Incluir</th>
+                      <th scope="col">Categoria</th>
+                      <th scope="col" className="num">Elem.</th>
+                      <th scope="col">Cor</th>
+                      <th scope="col">Camada</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categories.map((c, i) => (
+                      <tr key={c.category}>
+                        <td>
+                          <label className="cell-check">
+                            <input type="checkbox" checked={c.enabled} aria-label={'Incluir ' + prettyCategory(c.category)}
+                              onChange={(e) => setCategories((p) => p.map((x, j) => (j === i ? { ...x, enabled: e.target.checked } : x)))} />
+                          </label>
+                        </td>
+                        <td>{prettyCategory(c.category)}</td>
+                        <td className="num">{c.count}</td>
+                        <td>
+                          <input type="color" value={c.color} aria-label={'Cor de ' + prettyCategory(c.category)}
+                            onChange={(e) => setCategories((p) => p.map((x, j) => (j === i ? { ...x, color: e.target.value } : x)))} />
+                        </td>
+                        <td>
+                          <input type="text" value={c.layerName} aria-label={'Nome da camada de ' + prettyCategory(c.category)}
+                            className="cell-input"
+                            onChange={(e) => setCategories((p) => p.map((x, j) => (j === i ? { ...x, layerName: e.target.value } : x)))} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </section>
+
+            <section className="card" aria-labelledby="sec-adv">
+              <h2 id="sec-adv">Extração de geometria</h2>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="cmode">Modo de contorno</label>
+                  <select id="cmode" value={opts.contourMode} onChange={(e) => setOpt('contourMode', e.target.value as any)}>
+                    <option value="auto">Automático (híbrido)</option>
+                    <option value="hull">Envoltória convexa</option>
+                    <option value="raster">Contorno rasterizado</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="cell">Célula do raster (m)</label>
+                  <input id="cell" type="number" step="0.05" min="0.03" value={opts.cellSize}
+                    onChange={(e) => setOpt('cellSize', clamp(parseFloat(e.target.value) || 0.25, 0.03, 2))} />
+                </div>
+              </div>
+              <div className="field-row">
+                <div className="field">
+                  <label htmlFor="vaxis">Eixo vertical</label>
+                  <select id="vaxis" value={opts.verticalAxis} onChange={(e) => setOpt('verticalAxis', e.target.value as any)}>
+                    <option value="auto">Detectar (atual: {stats.axis.toUpperCase()})</option>
+                    <option value="z">Z (padrão IFC)</option>
+                    <option value="y">Y</option>
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="simp">Simplificação (m)</label>
+                  <input id="simp" type="number" step="0.01" value={opts.simplifyTol}
+                    onChange={(e) => setOpt('simplifyTol', clamp(parseFloat(e.target.value) || 0.12, 0.01, 2))} />
+                </div>
+              </div>
+              <label className="check">
+                <input type="checkbox" checked={opts.flattenPsets} onChange={(e) => setOpt('flattenPsets', e.target.checked)} />
+                Achatar Psets em propriedades kv_p_* (além do objeto kv_ifc_psets)
+              </label>
+              <label className="check">
+                <input type="checkbox" checked={opts.writeVertexZ} onChange={(e) => setOpt('writeVertexZ', e.target.checked)} />
+                Gravar cota Z nos vértices do GeoJSON
+              </label>
+              <p className="hint">Alterações de contorno e eixo exigem recarregar o arquivo IFC.</p>
+            </section>
+          </>
+        )}
+
+        {tab === 'log' && (
+          <>
+            <section className="card" aria-labelledby="sec-diag">
+              <h2 id="sec-diag">Diagnóstico do ambiente</h2>
+              <table className="kv">
+                <tbody>
+                  <tr><td>SDK Giraffe</td><td>{sdkReady ? 'carregado' : 'indisponível'}</td></tr>
+                  <tr><td>web-ifc / WASM</td><td>{_wasmBaseUsed || 'não inicializado'}</td></tr>
+                  <tr><td>Malhas lidas</td><td className="num">{stats.meshes}</td></tr>
+                  <tr><td>Fator de unidade</td><td className="num">{stats.unit}</td></tr>
+                  <tr><td>Eixo vertical</td><td>{stats.axis.toUpperCase()}</td></tr>
+                  <tr><td>Georreferência IFC</td><td>{stats.georef}</td></tr>
+                  <tr><td>Âncora aplicada</td><td>{anchor.lat.toFixed(6)}, {anchor.lon.toFixed(6)}</td></tr>
+                  <tr><td>Seções gravadas</td><td className="num">{stats.written}</td></tr>
+                  <tr><td>Tag da sessão</td><td>{tagRef.current}</td></tr>
+                </tbody>
+              </table>
+            </section>
+            <section className="card" aria-labelledby="sec-log">
+              <h2 id="sec-log">Log de execução</h2>
+              <div className="log" role="log" aria-live="polite">
+                {log.entries.map((e, i) => (
+                  <div key={i} className={'lv-' + e.lv}>
+                    <span className="ts">[{e.t}] </span>{e.msg}
+                  </div>
+                ))}
+                {!log.entries.length && <div className="ts">Sem registros.</div>}
+              </div>
+              <div className="btn-row">
+                <button className="btn btn-outlined" onClick={log.clear}>Limpar log</button>
+                <button className="btn btn-outlined"
+                  onClick={() => navigator.clipboard?.writeText(log.entries.map((e) => '[' + e.t + '] ' + e.msg).join('\n'))}>
+                  Copiar log
+                </button>
+              </div>
+            </section>
+            <section className="card" aria-labelledby="sec-lic">
+              <h2 id="sec-lic">Licenças de terceiros</h2>
+              <p className="hint">
+                Parsing IFC por <strong>web-ifc</strong> (ThatOpen Company) — código aberto com uso comercial permitido:{' '}
+                <a href="https://github.com/ThatOpen/engine_web-ifc/blob/main/LICENSE.md" target="_blank" rel="noopener noreferrer"
+                  style={{ color: 'var(--md-sys-color-primary)' }}>ver licença</a>.
+                React (MIT). Nenhum dado do modelo sai do navegador.
+              </p>
+            </section>
+          </>
+        )}
+      </main>
+
+      <footer className="app-footer">
+        <span>{APP_VERSION} · © 2026 Königsberger Vannucchi</span>
+        <span>{featureCount ? featureCount + ' features prontas' : 'aguardando IFC'}</span>
+      </footer>
+    </div>
+  );
+}
+
+const rootEl = document.getElementById('root');
+if (rootEl) (ReactDOM as any).createRoot(rootEl).render(<App />);
+
+</script>
+</body>
+</html>
